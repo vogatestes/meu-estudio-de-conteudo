@@ -1,0 +1,1802 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Studio de Conteúdo · Instagram</title>
+<style>
+  :root{
+    --bg:#101012; --bg2:#17171a; --card:#1c1c20; --line:#2a2a2f;
+    --text:#f3f1ec; --muted:#a6a3a0; --accent:#d9b26a; --accent2:#f1f5f4;
+    --good:#3f8f6c; --bad:#b25454; --radius:14px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:"Iowan Old Style","Georgia",serif;}
+  h1,h2,h3{font-family:"Iowan Old Style","Georgia",serif; font-weight:600; letter-spacing:.2px;}
+  p,input,textarea,select,button,label,span,li{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  button{cursor:pointer;font-family:inherit}
+  ::selection{background:var(--accent);color:#111}
+
+  /* ---------- setup overlay ---------- */
+  #setup{position:fixed;inset:0;background:radial-gradient(120% 120% at 20% 0%, #1c1a17 0%, #0c0c0d 60%);
+    display:flex;align-items:center;justify-content:center;z-index:50;padding:24px}
+  .setup-card{max-width:560px;width:100%;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:36px 32px}
+  .setup-card h2{font-size:1.6rem;margin:0 0 6px}
+  .setup-card p.lead{color:var(--muted);margin:0 0 26px;font-size:.95rem;line-height:1.5}
+  .setup-card label{display:block;font-size:.8rem;color:var(--muted);margin:18px 0 6px;text-transform:none}
+  .setup-card input[type=text]{width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--line);
+    background:#0f0f11;color:var(--text);font-size:1rem}
+  .setup-card input[type=text]:focus{outline:2px solid var(--accent);outline-offset:1px}
+  .swatches{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+  .swatch{width:52px;height:52px;border-radius:12px;cursor:pointer;border:2px solid transparent;display:flex}
+  .swatch.sel{border-color:var(--accent2)}
+  .swatch i{flex:1}
+  .setup-actions{margin-top:28px;display:flex;align-items:center;gap:14px}
+  #setupBtn{background:var(--accent);color:#1a1305;border:none;padding:13px 22px;border-radius:10px;font-weight:600;font-size:.95rem}
+  #setupBtn:disabled{opacity:.5;cursor:default}
+  #setupStatus{font-size:.85rem;color:var(--muted)}
+  .examples{margin-top:10px;font-size:.8rem;color:var(--muted)}
+  .examples b{color:var(--text);cursor:pointer;border-bottom:1px dotted var(--muted)}
+
+  /* ---------- shell ---------- */
+  #app{display:none}
+  header.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 22px;
+    border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(16,16,18,.92);backdrop-filter:blur(6px);z-index:10}
+  .brand{display:flex;align-items:center;gap:12px}
+  .logo{width:40px;height:40px;border-radius:10px;background:var(--accent);color:#1a1305;display:flex;
+    align-items:center;justify-content:center;font-weight:700;font-family:sans-serif}
+  .brand h1{font-size:1.05rem;margin:0}
+  .brand .sub{margin:0;color:var(--muted);font-size:.8rem}
+  .theme-btn,.change-niche{background:none;border:1px solid var(--line);color:var(--text);border-radius:8px;padding:8px 12px;font-size:.85rem}
+
+  nav.tabs{display:flex;gap:6px;overflow-x:auto;padding:10px 16px;border-bottom:1px solid var(--line);
+    position:sticky;top:73px;background:var(--bg);z-index:9}
+  .tab{background:none;border:1px solid transparent;color:var(--muted);padding:8px 14px;border-radius:20px;
+    white-space:nowrap;font-size:.87rem}
+  .tab.active{background:var(--card);border-color:var(--line);color:var(--text)}
+
+  main{max-width:980px;margin:0 auto;padding:26px 18px 70px}
+  .panel{display:none}
+  .panel.active{display:block}
+  .hero{margin-bottom:20px}
+  .pill{display:inline-block;background:var(--card);border:1px solid var(--line);color:var(--accent);
+    font-size:.75rem;padding:5px 12px;border-radius:20px;margin-bottom:10px}
+  .hero h2{font-size:1.4rem;margin:0 0 8px}
+  .hero p{color:var(--muted);line-height:1.55;font-size:.93rem;max-width:640px}
+  .muted-tag{color:var(--muted);font-weight:400;font-size:.85rem}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:14px}
+  .card h3{margin:0 0 8px;font-size:1rem}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:680px){.grid{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}}
+  .stat .big{font-size:1.5rem;margin:2px 0;color:var(--accent)}
+  .card ul{margin:0;padding-left:18px;color:var(--muted);font-size:.9rem;line-height:1.7}
+  .card.good{border-color:rgba(63,143,108,.4)} .card.bad{border-color:rgba(178,84,84,.4)}
+
+  .flow{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+  .flow span{background:var(--bg2);border:1px solid var(--line);padding:8px 12px;border-radius:20px;font-size:.82rem;color:var(--muted)}
+  .bars{display:flex;flex-direction:column;gap:10px}
+  .bar-row{display:flex;align-items:center;gap:10px;font-size:.85rem}
+  .bar-row .lab{width:130px;flex-shrink:0;color:var(--muted)}
+  .bar-track{flex:1;background:var(--bg2);border-radius:8px;height:10px;overflow:hidden}
+  .bar-fill{height:100%;background:var(--accent)}
+  .bar-pct{width:38px;text-align:right;color:var(--accent)}
+
+  .post-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;margin-bottom:12px}
+  .post-card .cat{display:inline-block;font-size:.72rem;color:var(--accent);border:1px solid var(--line);padding:3px 9px;border-radius:20px;margin-bottom:8px}
+  .post-card h4{margin:0 0 6px;font-size:1.02rem}
+  .post-card p{margin:0 0 10px;color:var(--muted);font-size:.88rem;line-height:1.5;white-space:pre-wrap}
+  .post-card .row{display:flex;gap:8px;flex-wrap:wrap}
+  .mini-btn{background:var(--bg2);border:1px solid var(--line);color:var(--text);padding:7px 12px;border-radius:8px;font-size:.8rem}
+  .mini-btn.primary{background:var(--accent);color:#1a1305;border:none;font-weight:600}
+
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+  .chip{background:var(--bg2);border:1px solid var(--line);color:var(--muted);padding:7px 13px;border-radius:20px;font-size:.83rem}
+  .chip.active{background:var(--accent);color:#1a1305;border-color:var(--accent);font-weight:600}
+  .roteiros-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:680px){.roteiros-grid{grid-template-columns:1fr}}
+
+  .gen-layout,.art-layout{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:820px){.gen-layout,.art-layout{grid-template-columns:1fr}}
+  .lbl{display:block;font-size:.78rem;color:var(--muted);margin:14px 0 6px}
+  .chip-row{display:flex;flex-wrap:wrap;gap:8px}
+  .select,.fld{width:100%;padding:10px 12px;border-radius:9px;border:1px solid var(--line);background:#0f0f11;color:var(--text);font-size:.92rem}
+  textarea.fld{min-height:60px;resize:vertical}
+  .hint{color:var(--muted);font-size:.78rem;margin-top:8px;line-height:1.5}
+  .primary-btn{background:var(--accent);color:#1a1305;border:none;padding:12px 18px;border-radius:9px;font-weight:600;margin-top:16px;width:100%}
+  .secondary-btn{background:none;border:1px solid var(--accent);color:var(--accent);padding:11px 16px;border-radius:9px;font-weight:600;width:100%;margin-top:10px}
+  .ghost-btn{background:none;border:1px solid var(--line);color:var(--text);padding:6px 11px;border-radius:8px;font-size:.8rem}
+  .output-head{display:flex;justify-content:space-between;align-items:center}
+  .output{width:100%;min-height:220px;background:#0f0f11;border:1px solid var(--line);border-radius:9px;color:var(--text);
+    padding:14px;font-size:.92rem;line-height:1.6;resize:vertical}
+  .counter{color:var(--muted);font-size:.78rem;margin-right:8px}
+
+  .art-palette{display:flex;gap:8px;margin-top:10px}
+  .art-palette i{width:26px;height:26px;border-radius:6px;display:block;border:1px solid var(--line)}
+  .color-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:4px}
+  .color-field{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:.72rem;color:var(--muted)}
+  .color-field input[type=color]{width:44px;height:34px;border:1px solid var(--line);border-radius:8px;padding:0;background:none;cursor:pointer}
+  #artColorReset{margin-left:auto}
+  .logo-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:4px}
+  .switch-lbl{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--text);white-space:nowrap}
+  .switch-lbl input{width:17px;height:17px;accent-color:var(--accent)}
+  .cond-fields{display:none}
+  .cond-fields.show{display:block}
+  input.file{padding:8px}
+  .canvas-wrap{background:#000;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+  #artCanvas{width:100%;height:auto;display:block}
+  .art-actions{display:flex;gap:10px;margin-top:16px}
+  .art-actions button{margin-top:0}
+
+  #calendar{display:flex;flex-direction:column;gap:22px}
+  .cal-week h4{margin:0 0 10px;font-size:.95rem;color:var(--muted)}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+  @media(max-width:680px){.cal-grid{grid-template-columns:repeat(2,1fr)}}
+  .cal-day{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px;min-height:96px;font-size:.78rem;cursor:pointer}
+  .cal-day.empty{opacity:.3;cursor:default}
+  .cal-day .dname{color:var(--muted);font-size:.7rem;margin-bottom:6px;display:block}
+  .cal-day .cat{color:var(--accent);font-size:.68rem;display:block;margin-bottom:4px}
+  .cal-day .ttl{font-size:.78rem;line-height:1.3}
+  .cal-day:hover{border-color:var(--accent)}
+
+  footer{text-align:center;color:var(--muted);font-size:.78rem;padding:26px;border-top:1px solid var(--line)}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--accent);
+    color:#1a1305;padding:10px 18px;border-radius:20px;font-size:.85rem;font-weight:600;opacity:0;
+    transition:all .25s;pointer-events:none;z-index:99}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Merriweather:wght@400;700&family=Poppins:wght@400;600;700&family=Montserrat:wght@500;700&family=Bebas+Neue&family=Caveat:wght@600;700&family=DM+Serif+Display&family=Space+Grotesk:wght@500;700&family=Source+Serif+4:wght@600;700&family=Fraunces:wght@600;700&display=swap">
+</head>
+<body>
+
+<!-- ============ SETUP ============ -->
+<div id="setup">
+  <div class="setup-card">
+    <h2>Studio de Conteúdo</h2>
+    <p class="lead">Um sistema de criação de conteúdo para Instagram (tendências, roteiros, gerador de legendas, criador de arte, calendário e estratégia) — mas para o <strong>seu</strong> nicho, não um fixo. Diga qual é o seu negócio.</p>
+
+    <label for="setNiche">Qual é o seu nicho / tipo de negócio?</label>
+    <input id="setNiche" type="text" placeholder="Ex.: nail designer, personal trainer, confeitaria, clínica odontológica..." />
+    <p class="examples">Ideias: <b data-v="nail designer">nail designer</b> · <b data-v="personal trainer">personal trainer</b> · <b data-v="confeitaria artesanal">confeitaria</b> · <b data-v="barbearia">barbearia</b> · <b data-v="clínica de estética">clínica de estética</b> · <b data-v="fotografia de casamentos">fotógrafo(a)</b></p>
+
+    <label for="setBrand">Nome do negócio (opcional)</label>
+    <input id="setBrand" type="text" placeholder="Ex.: Studio Bella Nails" />
+
+    <label>Paleta de cores</label>
+    <div class="swatches" id="paletteSwatches"></div>
+
+    <div class="setup-actions">
+      <button id="setupBtn">Gerar meu Studio ✨</button>
+      <span id="setupStatus"></span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app">
+<header class="topbar">
+  <div class="brand">
+    <div class="logo" id="logoInit">NM</div>
+    <div>
+      <h1 id="brandName">Studio de Conteúdo</h1>
+      <p class="sub" id="brandSub">Instagram</p>
+    </div>
+  </div>
+  <button class="change-niche" id="changeNicheBtn">Trocar nicho</button>
+  <button class="theme-btn" id="settingsBtn" title="Configurar backend de IA (tendências e ganchos)">⚙</button>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button class="tab active" data-tab="hoje">🌅 Hoje</button>
+  <button class="tab" data-tab="radar">📡 Tendências</button>
+  <button class="tab" data-tab="produtos">📚 Guia</button>
+  <button class="tab" data-tab="motiva">💬 Frases</button>
+  <button class="tab" data-tab="roteiros">🔥 Roteiros</button>
+  <button class="tab" data-tab="gerador">✍️ Gerador</button>
+  <button class="tab" data-tab="arte">🎨 Arte</button>
+  <button class="tab" data-tab="estrategia">📈 Estratégia</button>
+  <button class="tab" data-tab="calendario">🗓️ Calendário</button>
+</nav>
+
+<main>
+  <section id="hoje" class="panel active">
+    <div class="hero">
+      <span class="pill">Prontos pra postar</span>
+      <h2>Seus posts de hoje</h2>
+      <p>Posts prontos pra publicar no feed. Copie a legenda, clique em <strong>Criar arte</strong> e poste.</p>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
+      <button id="fetchHojeBtn" class="mini-btn primary">✨ Gerar posts de hoje com IA</button>
+      <span id="hojeStatus" class="hint" style="margin:0"></span>
+    </div>
+    <div id="hojeList"></div>
+  </section>
+
+  <section id="radar" class="panel">
+    <div class="hero">
+      <h2>📡 Tendências & Novidades</h2>
+      <p>O que está em alta no seu nicho agora, buscado por IA. Use pra mostrar que você está por dentro.</p>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
+      <button id="fetchTrendsBtn" class="mini-btn primary">🔎 Buscar tendências agora</button>
+      <span id="radarStatus" class="hint" style="margin:0"></span>
+    </div>
+    <div id="radarList"></div>
+  </section>
+
+  <section id="produtos" class="panel">
+    <div class="hero">
+      <h2>📚 Guia</h2>
+      <p>Conteúdo educativo que nunca vence: técnicas, cuidados e boas práticas do seu nicho.</p>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
+      <button id="fetchGuiaBtn" class="mini-btn primary">✨ Gerar guia com IA</button>
+      <span id="guiaStatus" class="hint" style="margin:0"></span>
+    </div>
+    <div id="produtosList"></div>
+  </section>
+
+  <section id="motiva" class="panel">
+    <div class="hero">
+      <h2>💬 Frases e citações</h2>
+      <p>Frases do seu nicho, prontas para os modelos de arte "Frase" e "Cofre".</p>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
+      <button id="fetchFrasesBtn" class="mini-btn primary">✨ Gerar frases com IA</button>
+      <span id="frasesStatus" class="hint" style="margin:0"></span>
+    </div>
+    <div id="motivaList"></div>
+  </section>
+
+  <section id="roteiros" class="panel">
+    <div class="hero">
+      <h2>🔥 Roteiros virais</h2>
+      <p>Formatos comprovados adaptados ao seu nicho. Filtre por categoria e use como molde.</p>
+    </div>
+    <div class="filters" id="catFilters"></div>
+    <div class="roteiros-grid" id="roteirosGrid"></div>
+  </section>
+
+  <section id="gerador" class="panel">
+    <div class="hero">
+      <h2>✍️ Gerador de post</h2>
+      <p>Categoria → roteiro → edite → copie. Depois clique em <strong>Criar arte</strong>.</p>
+    </div>
+    <div class="gen-layout">
+      <div class="card gen-form">
+        <label class="lbl">1. Categoria</label>
+        <div class="chip-row" id="genCats"></div>
+        <label class="lbl">2. Roteiro viral</label>
+        <select id="genRoteiro" class="select"></select>
+        <p class="hint" id="roteiroHint"></p>
+        <button id="genBtn" class="primary-btn">Gerar post ✨</button>
+      </div>
+      <div class="card gen-output">
+        <div class="output-head">
+          <label class="lbl">Seu post</label>
+          <div><span class="counter" id="charCount">0 caract.</span><button id="copyBtn" class="ghost-btn">📋 Copiar</button></div>
+        </div>
+        <textarea id="genOutput" class="output" placeholder="Sua legenda aparece aqui..." spellcheck="false"></textarea>
+        <button id="toArtBtn" class="secondary-btn">🎨 Criar arte deste post →</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="arte" class="panel">
+    <div class="hero">
+      <h2>🎨 Criador de arte</h2>
+      <p>Gera a imagem do post pronta pra baixar, na sua paleta.</p>
+      <div class="art-palette" id="artPaletteView"></div>
+    </div>
+    <div class="art-layout">
+      <div class="card">
+        <label class="lbl">1. Modelo</label>
+        <div class="chip-row" id="artTemplates"></div>
+
+        <label class="lbl">Fonte do título</label>
+        <div class="chip-row" id="artFonts"></div>
+
+        <label class="lbl">Cores desta arte</label>
+        <div class="color-row">
+          <div class="color-field"><input type="color" id="artColorBg" /><span>Fundo</span></div>
+          <div class="color-field"><input type="color" id="artColorAccent" /><span>Destaque</span></div>
+          <div class="color-field"><input type="color" id="artColorText" /><span>Texto</span></div>
+          <button id="artColorReset" class="ghost-btn">↺ Cores do negócio</button>
+        </div>
+        <label class="lbl">Plano de fundo</label>
+        <div class="chip-row" id="artBgMode">
+          <button class="chip active" data-m="color">Cor sólida</button>
+          <button class="chip" data-m="image">Imagem</button>
+        </div>
+        <div id="bgImageField" class="cond-fields">
+          <input id="artBgImgFile" type="file" accept="image/*" class="fld file" />
+          <p class="hint">Vale para os modelos Tag+Título, Número, Frase e Tweet — aplicamos um filtro escuro por cima pra manter o texto legível.</p>
+        </div>
+
+        <label class="lbl">Logo</label>
+        <div class="logo-row">
+          <input id="artLogo" type="file" accept="image/*" class="fld file" />
+          <label class="switch-lbl"><input type="checkbox" id="artLogoToggle" /> Mostrar logo na arte</label>
+        </div>
+        <div id="logoOptions" class="cond-fields">
+          <label class="lbl">Posição</label>
+          <div class="chip-row" id="artLogoPos"></div>
+          <label class="lbl">Tamanho</label>
+          <div class="chip-row" id="artLogoSize"></div>
+        </div>
+
+        <div id="tagField">
+          <label class="lbl">Etiqueta (tag pequena)</label>
+          <input id="artTag" class="fld" placeholder="Ex.: Antes e depois" />
+        </div>
+        <label class="lbl" id="titleLabel">Título / gancho</label>
+        <textarea id="artTitle" class="fld" placeholder="Digite o título..."></textarea>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
+          <button id="genHooksBtn" class="ghost-btn" type="button">🪝 Gerar ganchos</button>
+          <span id="hooksStatus" class="hint" style="margin:0"></span>
+        </div>
+        <div id="hooksList" style="display:flex;flex-direction:column;gap:6px;margin-top:8px"></div>
+        <div id="subField">
+          <label class="lbl">Linha de apoio (opcional)</label>
+          <textarea id="artSub" class="fld" placeholder="Ex.: uma frase de apoio"></textarea>
+        </div>
+
+        <div id="numeroFields" class="cond-fields">
+          <label class="lbl">Número em destaque</label>
+          <input id="artNum" class="fld" placeholder="4" />
+        </div>
+        <div id="footerFields" class="cond-fields">
+          <label class="lbl">Linha do rodapé (opcional)</label>
+          <input id="artCofreSub" class="fld" placeholder="Ex.: barbearia · Rio de Janeiro, RJ" />
+        </div>
+        <div id="fraseFields" class="cond-fields">
+          <label class="lbl">Autor (opcional)</label>
+          <input id="artAutor" class="fld" placeholder="Ex.: nome do negócio" />
+        </div>
+        <div id="eventoFields" class="cond-fields">
+          <label class="lbl">Data do evento</label>
+          <input id="artEventDate" class="fld" placeholder="08 SET, 2026" />
+          <label class="lbl">Horário</label>
+          <input id="artEventTime" class="fld" placeholder="Às 19h" />
+          <label class="lbl">Nome do local</label>
+          <input id="artEventVenue" class="fld" placeholder="Clube Monte Líbano" />
+          <label class="lbl">Endereço (uma linha por linha do texto)</label>
+          <textarea id="artEventAddress" class="fld" placeholder="Av. Borges de Medeiros, 701&#10;Leblon"></textarea>
+        </div>
+        <div id="antesDepoisFields" class="cond-fields">
+          <label class="lbl">Foto ANTES</label>
+          <input id="artBeforeFoto" type="file" accept="image/*" class="fld file" />
+          <label class="lbl">Foto DEPOIS</label>
+          <input id="artAfterFoto" type="file" accept="image/*" class="fld file" />
+        </div>
+        <div id="mitoVerdadeFields" class="cond-fields">
+          <label class="lbl">Mito</label>
+          <textarea id="artMito" class="fld" placeholder="Ex.: Cílios postiços enfraquecem os naturais"></textarea>
+          <label class="lbl">Verdade</label>
+          <textarea id="artVerdade" class="fld" placeholder="Ex.: Quando bem aplicados e removidos, não causam dano"></textarea>
+        </div>
+        <div id="whatsappFields" class="cond-fields">
+          <label class="lbl">Foto de fundo</label>
+          <input id="artWhatsBg" type="file" accept="image/*" class="fld file" />
+          <label class="lbl">Nome do cliente</label>
+          <input id="artWhatsName" class="fld" placeholder="Ex.: Camila R." />
+          <label class="lbl">Avatar (opcional)</label>
+          <input id="artWhatsAvatar" type="file" accept="image/*" class="fld file" />
+          <label class="lbl">Horário</label>
+          <input id="artWhatsTime" class="fld" placeholder="19:42" />
+        </div>
+        <div id="checklistFields" class="cond-fields">
+          <label class="lbl">Itens (um por linha)</label>
+          <textarea id="artChecklist" class="fld" placeholder="Higienize os fios diariamente&#10;Evite produtos oleosos na área&#10;Retorne em 15-20 dias para manutenção"></textarea>
+        </div>
+        <div id="fotoFields" class="cond-fields">
+          <label class="lbl">Foto</label>
+          <input id="artFoto" type="file" accept="image/*" class="fld file" />
+          <p class="hint">Uma foto real de boa qualidade funciona melhor.</p>
+        </div>
+        <div id="tweetFields" class="cond-fields">
+          <label class="lbl">@usuário</label>
+          <input id="artHandle" class="fld" placeholder="@seu_negocio" />
+          <label class="lbl">Avatar (opcional)</label>
+          <input id="artAvatar" type="file" accept="image/*" class="fld file" />
+          <label class="lbl">Data e hora</label>
+          <input id="artTweetTime" class="fld" placeholder="09:15 · 31/08/2026" />
+          <div style="display:flex;gap:10px">
+            <div style="flex:1"><label class="lbl">💬 Comentários</label><input id="artComments" class="fld" placeholder="88" /></div>
+            <div style="flex:1"><label class="lbl">🔁 Retweets</label><input id="artRetweets" class="fld" placeholder="340" /></div>
+            <div style="flex:1"><label class="lbl">❤️ Curtidas</label><input id="artLikes" class="fld" placeholder="1,2 mil" /></div>
+          </div>
+        </div>
+
+        <label class="lbl">Formato</label>
+        <div class="chip-row" id="artFormats"></div>
+        <div class="art-actions">
+          <button id="artRender" class="primary-btn">Atualizar arte 🔄</button>
+          <button id="artDownload" class="secondary-btn">⬇️ Baixar PNG</button>
+        </div>
+      </div>
+      <div class="card art-preview-card">
+        <label class="lbl">Prévia</label>
+        <div class="canvas-wrap"><canvas id="artCanvas" width="1080" height="1350"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="estrategia" class="panel">
+    <div class="hero">
+      <span class="pill">Objetivo: CRESCER + CONVERTER ✨</span>
+      <h2>Como o sistema funciona</h2>
+      <p>Fluxo: escolha um post pronto (Hoje, Tendências, Guia ou Frases), clique em Criar arte, copie e poste.</p>
+    </div>
+    <div class="flow" id="flow"></div>
+    <div class="grid">
+      <div class="card stat"><h3>Frequência</h3><p class="big">4–6</p><p>posts + stories na semana</p></div>
+      <div class="card stat"><h3>Horários</h3><p class="big">12h · 19h · 21h</p><p>picos comuns de engajamento</p></div>
+      <div class="card stat"><h3>Métrica-rei</h3><p class="big">🔖 + 📩</p><p>salvamentos e directs &gt; curtidas</p></div>
+    </div>
+    <div class="card"><h3>Proporção semanal de categorias</h3><div class="bars" id="propBars"></div></div>
+    <div class="grid2">
+      <div class="card good"><h3>✅ Regras de ouro</h3><ul id="regrasFazer"></ul></div>
+      <div class="card bad"><h3>❌ O que evitar</h3><ul id="regrasEvitar"></ul></div>
+    </div>
+  </section>
+
+  <section id="calendario" class="panel">
+    <div class="hero">
+      <h2>🗓️ Calendário editorial — 4 semanas</h2>
+      <p>5 posts por semana respeitando a proporção das categorias. Clique num dia para abrir o gerador.</p>
+    </div>
+    <div id="calendar"></div>
+  </section>
+</main>
+
+<footer><p id="footerText">Studio de Conteúdo · Instagram · 100% local, sem coleta de dados.</p></footer>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<div id="backendModal" style="position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:60">
+  <div class="setup-card" style="max-width:440px">
+    <h2 style="font-size:1.2rem">Backend de IA</h2>
+    <p class="lead" style="margin-bottom:14px">Cole aqui a URL do backend (Render/Railway) usado para buscar tendências reais e gerar ganchos com IA.</p>
+    <input id="backendUrlInput" type="text" placeholder="https://seu-app.onrender.com" />
+    <div class="setup-actions">
+      <button id="closeBackendModal" class="ghost-btn" type="button">Cancelar</button>
+      <button id="saveBackendModal" class="mini-btn primary" type="button">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================= PALETTES ================= */
+const PALETTES = [
+  {name:"Dourado & Preto", bg:"#0e0e10", card:"#1c1c20", accent:"#d9b26a", text:"#f6f1e7"},
+  {name:"Verde Oliva & Areia", bg:"#20241c", card:"#2a2f24", accent:"#c9a46b", text:"#f4efe6"},
+  {name:"Azul Petróleo & Coral", bg:"#0c2229", card:"#123039", accent:"#ff6b5b", text:"#eef7f5"},
+  {name:"Rosa Queimado & Grafite", bg:"#241016", card:"#301820", accent:"#e2a0a6", text:"#f7ede9"},
+  {name:"Roxo Profundo & Dourado", bg:"#1b1030", card:"#241640", accent:"#c9a66b", text:"#f3eef8"},
+  {name:"Grafite & Verde-menta", bg:"#141516", card:"#1e2020", accent:"#7fd6a8", text:"#eef3f0"},
+];
+
+let STATE = {
+  niche:"", brand:"", palette:PALETTES[0],
+  content:null, // filled by API
+  genFilterCat:null, genSelectedRoteiro:null,
+  artTemplate:"tag-titulo", artFormat:"4:5",
+  artFotoImg:null, artAvatarImg:null,
+};
+
+/* ================= SETUP SCREEN ================= */
+const paletteWrap = document.getElementById('paletteSwatches');
+PALETTES.forEach((p,i)=>{
+  const el = document.createElement('div');
+  el.className='swatch'+(i===0?' sel':'');
+  el.style.background = `linear-gradient(135deg, ${p.bg} 50%, ${p.accent} 50%)`;
+  el.title = p.name;
+  el.dataset.i = i;
+  el.onclick = ()=>{
+    document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('sel'));
+    el.classList.add('sel');
+    STATE.palette = PALETTES[i];
+  };
+  paletteWrap.appendChild(el);
+});
+document.querySelectorAll('.examples b').forEach(b=>{
+  b.onclick = ()=>{ document.getElementById('setNiche').value = b.dataset.v; };
+});
+
+document.getElementById('setupBtn').onclick = async ()=>{
+  const niche = document.getElementById('setNiche').value.trim();
+  const brand = document.getElementById('setBrand').value.trim();
+  if(!niche){ toast('Digite o seu nicho primeiro'); return; }
+  STATE.niche = niche; STATE.brand = brand || niche;
+  const btn = document.getElementById('setupBtn'); const status = document.getElementById('setupStatus');
+  btn.disabled = true; btn.textContent = 'Gerando...';
+  status.textContent = 'Criando conteúdo para "'+niche+'"...';
+  let usedLocal = false;
+  try{
+    STATE.content = await generateContent(niche, brand);
+  }catch(e){
+    console.warn('IA indisponível, usando gerador local:', e.message);
+    STATE.content = smartLocalContent(niche, brand);
+    usedLocal = true;
+  }
+  launchApp();
+  if(usedLocal) setTimeout(()=>toast('Conteúdo gerado localmente ✨'), 400);
+};
+
+/* ================= AI CONTENT GENERATION ================= */
+async function generateContent(niche, brand){
+  const sys = `Você é um estrategista de conteúdo para Instagram, especializado no nicho: "${niche}". Responda APENAS com um objeto JSON válido, sem markdown, sem crases, sem texto antes ou depois. Use português do Brasil, tom próximo e humano, nada genérico. Estrutura exata:
+{
+ "categorias":["Dicas e cuidados","Bastidores","Mitos e verdades","Chamadas","Outros"],
+ "proporcao":[{"categoria":"Dicas e cuidados","pct":30},{"categoria":"Bastidores","pct":20},{"categoria":"Mitos e verdades","pct":20},{"categoria":"Chamadas","pct":20},{"categoria":"Outros","pct":10}],
+ "tendencias":[{"titulo":"","resumo":"","legenda":""}],
+ "guia":[{"titulo":"","resumo":"","legenda":""}],
+ "frases":[{"texto":"","autor":""}],
+ "roteiros":[{"categoria":"","titulo":"","estrutura":"","exemplo":""}],
+ "hoje":[{"titulo":"","legenda":"","categoria":""}],
+ "regras":{"fazer":["",""],"evitar":["",""]}
+}
+Regras de conteúdo: "tendencias" deve ter 5 itens (novidades/tecnicas em alta no nicho); "guia" deve ter 5 itens (conteúdo evergreen educativo); "frases" deve ter 8 itens curtos e inspiradores ligados ao nicho; "roteiros" deve ter 8 itens, cada um com "categoria" igual a uma das 5 categorias, "estrutura" descrevendo o formato em 1 frase, e "exemplo" sendo uma legenda pronta de 2-4 frases; "hoje" deve ter 4 posts prontos com legenda completa pronta pra colar; "regras.fazer" e "regras.evitar" devem ter 5 itens cada, curtos e específicos do nicho. O negócio se chama "${brand}".`;
+
+  async function callOnce(){
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({
+        model:"claude-sonnet-4-6",
+        max_tokens: 8000,
+        system: sys,
+        messages:[{role:"user", content:`Gere o pacote de conteúdo em JSON para o nicho "${niche}". Responda só com o objeto JSON, começando em { e terminando em }.`}]
+      })
+    });
+    if(!resp.ok){
+      const errText = await resp.text().catch(()=> '');
+      throw new Error(`Falha na API (status ${resp.status}): ${errText.slice(0,200)}`);
+    }
+    const data = await resp.json();
+    if(data.error){ throw new Error('Erro da API: '+(data.error.message||JSON.stringify(data.error))); }
+    const textBlocks = (data.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("\n");
+    if(!textBlocks.trim()){ throw new Error('Resposta vazia da API.'); }
+    let clean = textBlocks.replace(/```json|```/g,"").trim();
+    // extract from first { to last } in case of stray text or truncation markers
+    const first = clean.indexOf('{'); const last = clean.lastIndexOf('}');
+    if(first === -1 || last === -1 || last <= first){
+      throw new Error('Não veio JSON válido na resposta: '+clean.slice(0,200));
+    }
+    clean = clean.slice(first, last+1);
+    try{
+      return JSON.parse(clean);
+    }catch(parseErr){
+      throw new Error('JSON incompleto/malformado (provavelmente cortado): '+parseErr.message);
+    }
+  }
+  try{
+    return await callOnce();
+  }catch(e1){
+    console.warn('1ª tentativa falhou:', e1.message);
+    document.getElementById('setupStatus').textContent = 'Primeira tentativa falhou, tentando de novo...';
+    return await callOnce(); // one retry before giving up to caller
+  }
+}
+
+function fallbackContent(niche, brand){ return smartLocalContent(niche, brand); }
+
+/* Offline, no-network content generator — real variety, works with any browser/environment */
+function smartLocalContent(niche, brand){
+  const cats = ["Dicas e cuidados","Bastidores","Mitos e verdades","Chamadas","Outros"];
+  const n = niche.toLowerCase();
+  const N = niche.charAt(0).toUpperCase()+niche.slice(1);
+  const b = brand || N;
+
+  const tendPool = [
+    {titulo:`O que está mudando em ${n} agora`, resumo:`Uma novidade recente que está pegando entre quem trabalha com ${n}.`, legenda:`Tem novidade em ${n} rolando por aí e a gente já está de olho. Comenta aqui se você já ouviu falar disso — e salva esse post pra não esquecer de perguntar na sua próxima visita. ✨`},
+    {titulo:`A técnica que todo mundo está pedindo`, resumo:`Um método que virou pedido frequente entre clientes de ${n}.`, legenda:`Ultimamente esse é o pedido número 1 aqui. Se você trabalha ou é cliente de ${n}, vale a pena entender do que se trata antes de marcar seu próximo horário. Salva pra depois!`},
+    {titulo:`Erro que ainda é muito comum`, resumo:`Um mal-entendido frequente no universo de ${n}.`, legenda:`Muita gente ainda erra nisso quando o assunto é ${n}. Vamos desmistificar? Marca aqui alguém que precisa ler isso. 👇`},
+    {titulo:`Por dentro das novidades de ${n}`, resumo:`Resumo rápido do que está em alta.`, legenda:`Separei rapidinho o que está bombando em ${n} nas últimas semanas. Se quiser saber mais sobre algum ponto, comenta aqui embaixo!`},
+    {titulo:`Isso está mudando a forma como as pessoas veem ${n}`, resumo:`Uma mudança de comportamento que vale acompanhar.`, legenda:`Reparei uma mudança interessante em como as pessoas estão lidando com ${n} — e acho que vale compartilhar com vocês. O que acham?`},
+  ];
+  const guiaPool = [
+    {titulo:`Guia rápido: primeiros passos em ${n}`, resumo:`Conteúdo educativo evergreen.`, legenda:`Se você está começando com ${n} (ou nunca teve certeza de como funciona), guardei aqui o essencial. Salva esse post pra consultar sempre que precisar!`},
+    {titulo:`3 cuidados que fazem toda a diferença`, resumo:`Boas práticas duradouras.`, legenda:`Esses 3 cuidados simples mudam o resultado quando o assunto é ${n}. Qual desses você já faz? Conta aqui embaixo.`},
+    {titulo:`Perguntas que sempre recebo sobre ${n}`, resumo:`FAQ direto ao ponto.`, legenda:`Separei as perguntas que mais recebo sobre ${n} e respondi de forma bem direta. Ficou faltando alguma? Comenta que eu respondo!`},
+    {titulo:`O passo a passo que ninguém te conta`, resumo:`Processo explicado de forma simples.`, legenda:`Aqui vai o passo a passo completo, sem enrolação, pra você entender exatamente como funciona ${n} na prática. Salva esse post!`},
+    {titulo:`Mito ou verdade: ${n} edition`, resumo:`Desmistificando crenças comuns.`, legenda:`Separei algumas crenças comuns sobre ${n} pra desmistificar de vez. Qual dessas você também acreditava? 👇`},
+  ];
+  const frasesPool = [
+    `Cuidar bem de ${n} é também um jeito de cuidar de si.`,
+    `O resultado vem da constância, não da pressa — e em ${n} não é diferente.`,
+    `Todo detalhe importa quando o assunto é ${n}.`,
+    `Confiança se constrói com transparência, um atendimento de cada vez.`,
+    `O melhor investimento é sempre em quem você é.`,
+    `Pequenos cuidados, grandes resultados.`,
+    `Quem entende de ${n} sabe: consistência sempre vence pressa.`,
+    `Seu bem-estar merece atenção de verdade, não só correria.`,
+  ].map(t=>({texto:t, autor:b}));
+  const roteiroPool = [
+    {categoria:"Mitos e verdades", titulo:"Mito ou verdade", estrutura:"Apresente uma crença comum e revele se é mito ou verdade, explicando o porquê.", exemplo:`MITO OU VERDADE sobre ${n}? 👀 Muita gente acredita numa coisa que não é bem assim... [explique aqui]. Comenta se você também achava isso!`},
+    {categoria:"Bastidores", titulo:"Um dia nos bastidores", estrutura:"Mostre o processo real por trás do trabalho, sem filtro.", exemplo:`Um dia normal aqui cuidando de ${n} 🎬 Do preparo ao resultado final — é bem mais trabalho do que parece! Vem ver como é por dentro.`},
+    {categoria:"Outros", titulo:"Depoimento real", estrutura:"Compartilhe (com autorização) o depoimento ou resultado de um cliente satisfeito.", exemplo:`"Não sabia que fazia tanta diferença até experimentar" — mais um cliente satisfeito com ${n}! Resultados assim que nos motivam todos os dias. 💛`},
+    {categoria:"Chamadas", titulo:"Vaga na agenda", estrutura:"Anuncie disponibilidade com senso de urgência real, sem ser insistente.", exemplo:`Abrimos horários novos essa semana pra ${n}! Se você já estava querendo marcar, essa é a hora. Manda um direct pra garantir o seu.`},
+    {categoria:"Outros", titulo:"Pergunta direta", estrutura:"Faça uma pergunta simples ligada ao dia a dia do público pra gerar comentários.", exemplo:`Curiosidade: quando foi a última vez que você cuidou disso? Conta aqui nos comentários — quero saber a rotina de vocês com ${n}! 👇`},
+    {categoria:"Dicas e cuidados", titulo:"Passo a passo", estrutura:"Liste 3 a 5 passos simples de um processo relacionado ao seu serviço.", exemplo:`O passo a passo simplificado de como cuidamos de ${n} aqui no estúdio: 1) avaliação 2) preparo 3) execução 4) acabamento. Salva esse post!`},
+    {categoria:"Bastidores", titulo:"Antes de abrir as portas", estrutura:"Mostre a preparação do espaço/rotina antes do primeiro atendimento do dia.", exemplo:`Antes do primeiro horário do dia, é assim que a gente se prepara pra receber vocês bem. Bastidores de quem ama ${n}. ☀️`},
+    {categoria:"Chamadas", titulo:"Pacote especial", estrutura:"Apresente um combo ou condição especial com CTA claro.", exemplo:`Preparamos uma condição especial pra quem quer experimentar ${n} esse mês. Chama no direct pra saber mais — vagas limitadas!`},
+  ];
+  const hojePool = [
+    {titulo:"Post de hoje: gancho forte", legenda:`Você sabia que a maioria das pessoas erra nisso quando o assunto é ${n}? Vem comigo que eu explico rapidinho — e no fim conta se você também já passou por isso. 👇`, categoria:"Dicas e cuidados"},
+    {titulo:"Post de hoje: bastidores", legenda:`Bastidores de mais um dia cuidando de ${n} por aqui. Trabalho de verdade não tem filtro — e a gente ama mostrar como é. 💛`, categoria:"Bastidores"},
+    {titulo:"Post de hoje: resultado de cliente", legenda:`Mais um resultado que fala por si só. Obrigada pela confiança! Se você também quer um resultado assim em ${n}, chama no direct.`, categoria:"Outros"},
+    {titulo:"Post de hoje: chamada pra agendar", legenda:`Ainda dá tempo de garantir seu horário essa semana pra cuidar de ${n}. Manda mensagem que eu te ajudo a encaixar. 📩`, categoria:"Chamadas"},
+  ];
+
+  return {
+    categorias: cats,
+    proporcao: [{categoria:"Dicas e cuidados",pct:30},{categoria:"Bastidores",pct:20},{categoria:"Mitos e verdades",pct:20},{categoria:"Chamadas",pct:20},{categoria:"Outros",pct:10}],
+    tendencias: tendPool,
+    guia: guiaPool,
+    frases: frasesPool,
+    roteiros: roteiroPool,
+    hoje: hojePool,
+    regras: {
+      fazer:[`Responda comentários e directs sobre ${n} rápido`, "Use um gancho forte na 1ª linha da legenda", "Mostre bastidores reais, sem filtro demais", "Peça pra salvar ou compartilhar o post", "Poste com constância, mesmo que simples"],
+      evitar:["Postar foto solta sem legenda ou contexto", "Vender em todo post (cansa o público)", "Sumir depois de postar sem responder ninguém", "Usar hashtags genéricas demais", "Legenda gigante sem gancho no início"]
+    }
+  };
+}
+
+/* ================= LAUNCH APP ================= */
+function launchApp(){
+  applyPalette(STATE.palette);
+  document.getElementById('setup').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('brandName').textContent = STATE.brand;
+  document.getElementById('brandSub').textContent = 'Instagram · '+STATE.niche;
+  document.getElementById('logoInit').textContent = (STATE.brand.trim()[0]||'S').toUpperCase();
+  document.getElementById('footerText').textContent = `Studio de Conteúdo · ${STATE.brand} · Instagram · 100% local, sem coleta de dados.`;
+  renderAll();
+}
+document.getElementById('changeNicheBtn').onclick = ()=>{
+  document.getElementById('app').style.display='none';
+  document.getElementById('setup').style.display='flex';
+  document.getElementById('setupStatus').textContent='';
+  document.getElementById('setupBtn').disabled=false;
+  document.getElementById('setupBtn').textContent='Gerar meu Studio ✨';
+};
+
+function applyPalette(p){
+  const r = document.documentElement.style;
+  r.setProperty('--bg', p.bg);
+  r.setProperty('--bg2', shade(p.bg, 6));
+  r.setProperty('--card', p.card);
+  r.setProperty('--accent', p.accent);
+  r.setProperty('--text', p.text);
+  r.setProperty('--line', shade(p.card, 10));
+}
+function shade(hex, amt){
+  const c = hex.replace('#','');
+  const num = parseInt(c,16);
+  let r=(num>>16)+amt, g=((num>>8)&0xff)+amt, b=(num&0xff)+amt;
+  r=Math.min(255,Math.max(0,r)); g=Math.min(255,Math.max(0,g)); b=Math.min(255,Math.max(0,b));
+  return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);
+}
+
+/* ================= TABS ================= */
+document.getElementById('tabs').addEventListener('click', e=>{
+  const btn = e.target.closest('.tab'); if(!btn) return;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(btn.dataset.tab).classList.add('active');
+});
+function goTab(id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===id));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active', p.id===id));
+}
+
+/* ================= RENDER ALL ================= */
+function renderAll(){
+  const c = STATE.content;
+  renderHoje(c); renderRadar(c); renderGuia(c); renderFrases(c);
+  renderRoteiros(c); renderGeradorCats(c); renderEstrategia(c); renderCalendar(c);
+  initArtColors();
+  renderArtTemplates(); renderArtFonts(); renderArtFormats(); renderArtPaletteView(); renderLogoOptions();
+}
+
+function postCardHTML(cat, titulo, legenda, extra){
+  return `<div class="post-card">
+    <span class="cat">${cat||''}</span>
+    <h4>${titulo}</h4>
+    <p>${legenda}</p>
+    <div class="row">
+      <button class="mini-btn primary" data-act="art" data-titulo="${escAttr(titulo)}" data-legenda="${escAttr(legenda)}">🎨 Criar arte</button>
+      <button class="mini-btn" data-act="copy" data-legenda="${escAttr(legenda)}">📋 Copiar legenda</button>
+    </div>
+  </div>`;
+}
+function escAttr(s){ return (s||'').replace(/"/g,'&quot;'); }
+
+function wirePostButtons(container){
+  container.querySelectorAll('[data-act="copy"]').forEach(b=>{
+    b.onclick = ()=>{ copyText(b.dataset.legenda); };
+  });
+  container.querySelectorAll('[data-act="art"]').forEach(b=>{
+    b.onclick = ()=>{
+      document.getElementById('artTitle').value = b.dataset.titulo;
+      document.getElementById('artSub').value = b.dataset.legenda.slice(0,80);
+      goTab('arte'); renderArt();
+    };
+  });
+}
+
+function renderHoje(c){
+  const el = document.getElementById('hojeList');
+  el.innerHTML = c.hoje.map(p=>postCardHTML(p.categoria,p.titulo,p.legenda)).join('');
+  wirePostButtons(el);
+}
+function renderRadar(c){
+  const el = document.getElementById('radarList');
+  el.innerHTML = c.tendencias.map(p=>postCardHTML('Tendência',p.titulo,p.legenda||p.resumo)).join('');
+  wirePostButtons(el);
+}
+function renderGuia(c){
+  const el = document.getElementById('produtosList');
+  el.innerHTML = c.guia.map(p=>postCardHTML('Guia',p.titulo,p.legenda||p.resumo)).join('');
+  wirePostButtons(el);
+}
+function renderFrases(c){
+  const el = document.getElementById('motivaList');
+  el.innerHTML = c.frases.map(f=>`<div class="post-card">
+    <p style="font-size:1.05rem;font-style:italic;color:var(--text)">"${f.texto}"</p>
+    <p style="margin-bottom:12px">— ${f.autor||STATE.brand}</p>
+    <div class="row">
+      <button class="mini-btn primary" data-act="art" data-titulo="${escAttr(f.texto)}" data-legenda="${escAttr(f.autor||'')}">🎨 Criar arte</button>
+      <button class="mini-btn" data-act="copy" data-legenda="${escAttr(f.texto)}">📋 Copiar</button>
+    </div>
+  </div>`).join('');
+  wirePostButtons(el);
+}
+function renderRoteiros(c){
+  const filtEl = document.getElementById('catFilters');
+  filtEl.innerHTML = `<button class="chip active" data-cat="">Todas</button>` +
+    c.categorias.map(cat=>`<button class="chip" data-cat="${cat}">${cat}</button>`).join('');
+  filtEl.querySelectorAll('.chip').forEach(ch=>{
+    ch.onclick = ()=>{
+      filtEl.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
+      ch.classList.add('active');
+      drawRoteirosGrid(c, ch.dataset.cat);
+    };
+  });
+  drawRoteirosGrid(c, "");
+}
+function drawRoteirosGrid(c, cat){
+  const grid = document.getElementById('roteirosGrid');
+  const list = cat ? c.roteiros.filter(r=>r.categoria===cat) : c.roteiros;
+  grid.innerHTML = list.map(r=>`<div class="post-card">
+    <span class="cat">${r.categoria}</span>
+    <h4>${r.titulo}</h4>
+    <p><strong>Estrutura:</strong> ${r.estrutura}</p>
+    <p>${r.exemplo}</p>
+    <div class="row">
+      <button class="mini-btn primary" data-act="use" data-titulo="${escAttr(r.titulo)}" data-legenda="${escAttr(r.exemplo)}">✍️ Usar no gerador</button>
+    </div>
+  </div>`).join('');
+  grid.querySelectorAll('[data-act="use"]').forEach(b=>{
+    b.onclick = ()=>{
+      document.getElementById('genOutput').value = b.dataset.legenda;
+      updateCharCount();
+      goTab('gerador');
+    };
+  });
+}
+
+function renderGeradorCats(c){
+  const wrap = document.getElementById('genCats');
+  wrap.innerHTML = c.categorias.map((cat,i)=>`<button class="chip${i===0?' active':''}" data-cat="${cat}">${cat}</button>`).join('');
+  wrap.querySelectorAll('.chip').forEach(ch=>{
+    ch.onclick = ()=>{
+      wrap.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
+      ch.classList.add('active');
+      STATE.genFilterCat = ch.dataset.cat;
+      populateRoteiroSelect(c);
+    };
+  });
+  STATE.genFilterCat = c.categorias[0];
+  populateRoteiroSelect(c);
+}
+function populateRoteiroSelect(c){
+  const sel = document.getElementById('genRoteiro');
+  const list = c.roteiros.filter(r=>r.categoria===STATE.genFilterCat);
+  sel.innerHTML = (list.length?list:c.roteiros).map((r,i)=>`<option value="${i}">${r.titulo}</option>`).join('');
+  sel.onchange = ()=>{ updateRoteiroHint(list.length?list:c.roteiros); };
+  updateRoteiroHint(list.length?list:c.roteiros);
+}
+function updateRoteiroHint(list){
+  const sel = document.getElementById('genRoteiro');
+  const r = list[+sel.value] || list[0];
+  document.getElementById('roteiroHint').textContent = r ? ('Estrutura: '+r.estrutura) : '';
+}
+document.getElementById('genBtn').onclick = ()=>{
+  const c = STATE.content;
+  const list = c.roteiros.filter(r=>r.categoria===STATE.genFilterCat);
+  const sel = document.getElementById('genRoteiro');
+  const r = (list.length?list:c.roteiros)[+sel.value] || c.roteiros[0];
+  document.getElementById('genOutput').value = r.exemplo;
+  updateCharCount();
+};
+document.getElementById('genOutput').addEventListener('input', updateCharCount);
+function updateCharCount(){
+  document.getElementById('charCount').textContent = document.getElementById('genOutput').value.length+' caract.';
+}
+document.getElementById('copyBtn').onclick = ()=> copyText(document.getElementById('genOutput').value);
+document.getElementById('toArtBtn').onclick = ()=>{
+  const txt = document.getElementById('genOutput').value;
+  document.getElementById('artTitle').value = txt.split('\n')[0].slice(0,60);
+  document.getElementById('artSub').value = txt.slice(0,90);
+  goTab('arte'); renderArt();
+};
+
+function renderEstrategia(c){
+  document.getElementById('flow').innerHTML = ['Hoje','Tendências','Guia','Frases','Gerador','Arte','Postar']
+    .map(s=>`<span>${s}</span>`).join(' → '.length?'':'');
+  document.getElementById('flow').innerHTML = ['Hoje','Tendências','Guia','Frases','Gerador','Arte','Postar']
+    .map(s=>`<span>${s}</span>`).join('');
+  document.getElementById('propBars').innerHTML = c.proporcao.map(p=>`
+    <div class="bar-row"><span class="lab">${p.categoria}</span>
+    <div class="bar-track"><div class="bar-fill" style="width:${p.pct}%"></div></div>
+    <span class="bar-pct">${p.pct}%</span></div>`).join('');
+  document.getElementById('regrasFazer').innerHTML = c.regras.fazer.map(x=>`<li>${x}</li>`).join('');
+  document.getElementById('regrasEvitar').innerHTML = c.regras.evitar.map(x=>`<li>${x}</li>`).join('');
+}
+
+function renderCalendar(c){
+  const el = document.getElementById('calendar');
+  const pool = [...c.hoje, ...c.tendencias.map(t=>({titulo:t.titulo,legenda:t.legenda,categoria:'Tendência'})),
+    ...c.guia.map(g=>({titulo:g.titulo,legenda:g.legenda,categoria:'Guia'})),
+    ...c.roteiros.map(r=>({titulo:r.titulo,legenda:r.exemplo,categoria:r.categoria}))];
+  const postDays = [0,2,4,5,6]; // seg, qua, sex, sab, dom
+  const dayNames = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+  let html=''; let idx=0;
+  for(let w=0; w<4; w++){
+    html += `<div class="cal-week"><h4>Semana ${w+1}</h4><div class="cal-grid">`;
+    for(let d=0; d<7; d++){
+      if(postDays.includes(d)){
+        const post = pool[idx % pool.length]; idx++;
+        html += `<div class="cal-day" data-titulo="${escAttr(post.titulo)}" data-legenda="${escAttr(post.legenda)}">
+          <span class="dname">${dayNames[d]}</span><span class="cat">${post.categoria||''}</span>
+          <span class="ttl">${post.titulo}</span></div>`;
+      } else {
+        html += `<div class="cal-day empty"><span class="dname">${dayNames[d]}</span></div>`;
+      }
+    }
+    html += `</div></div>`;
+  }
+  el.innerHTML = html;
+  el.querySelectorAll('.cal-day:not(.empty)').forEach(d=>{
+    d.onclick = ()=>{
+      document.getElementById('genOutput').value = d.dataset.legenda;
+      updateCharCount();
+      goTab('gerador');
+    };
+  });
+}
+
+/* ================= ARTE (canvas) ================= */
+const FONT_OPTIONS = [
+  {id:'georgia', label:'Clássica', family:'Georgia, "Times New Roman", serif'},
+  {id:'playfair', label:'Elegante', family:'"Playfair Display", Georgia, serif'},
+  {id:'dmserif', label:'Editorial fina', family:'"DM Serif Display", Georgia, serif'},
+  {id:'merri', label:'Jornal', family:'"Merriweather", Georgia, serif'},
+  {id:'sourceserif', label:'Old-style', family:'"Source Serif 4", Georgia, serif'},
+  {id:'fraunces', label:'Autoral', family:'"Fraunces", Georgia, serif'},
+  {id:'poppins', label:'Moderna', family:'"Poppins", Arial, sans-serif'},
+  {id:'grotesk', label:'Contemporânea', family:'"Space Grotesk", Arial, sans-serif'},
+  {id:'montserrat', label:'Minimalista', family:'"Montserrat", Arial, sans-serif'},
+  {id:'bebas', label:'Impacto', family:'"Bebas Neue", Arial, sans-serif'},
+  {id:'caveat', label:'Manuscrita', family:'"Caveat", cursive'},
+];
+STATE.artFont = FONT_OPTIONS[0].family;
+STATE.artColors = null;
+STATE.artBgMode = 'color';
+STATE.artBgImg = null;
+STATE.artLogoImg = null;
+STATE.artLogoEnabled = false;
+STATE.artLogoPos = 'top-right';
+STATE.artLogoSize = 'md';
+STATE.artBeforeImg = null;
+STATE.artAfterImg = null;
+STATE.artWhatsAvatarImg = null;
+STATE.artWhatsBgImg = null;
+
+function paintBackground(ctx, fmt, p){
+  if(STATE.artBgMode==='image' && STATE.artBgImg){
+    drawImgCover(ctx, STATE.artBgImg, 0,0,fmt.w,fmt.h);
+    ctx.fillStyle='rgba(0,0,0,.45)'; ctx.fillRect(0,0,fmt.w,fmt.h);
+  } else {
+    ctx.fillStyle=p.bg; ctx.fillRect(0,0,fmt.w,fmt.h);
+  }
+}
+document.getElementById('artBgMode').addEventListener('click', e=>{
+  const btn = e.target.closest('.chip'); if(!btn) return;
+  document.querySelectorAll('#artBgMode .chip').forEach(x=>x.classList.remove('active'));
+  btn.classList.add('active');
+  STATE.artBgMode = btn.dataset.m;
+  document.getElementById('bgImageField').classList.toggle('show', STATE.artBgMode==='image');
+  renderArt();
+});
+document.getElementById('artBgImgFile').addEventListener('change', e=>{
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{ const img = new Image(); img.onload=()=>{ STATE.artBgImg = img; renderArt(); }; img.src=reader.result; };
+  reader.readAsDataURL(file);
+});
+
+const LOGO_POSITIONS = [
+  {id:'top-left', label:'Sup. esquerda'},
+  {id:'top-right', label:'Sup. direita'},
+  {id:'bottom-left', label:'Inf. esquerda'},
+  {id:'bottom-right', label:'Inf. direita'},
+  {id:'center', label:'Centro'},
+];
+const LOGO_SIZES = [
+  {id:'sm', label:'Pequeno', px:80},
+  {id:'md', label:'Médio', px:130},
+  {id:'lg', label:'Grande', px:190},
+];
+function renderLogoOptions(){
+  const posWrap = document.getElementById('artLogoPos');
+  posWrap.innerHTML = LOGO_POSITIONS.map((p,i)=>`<button class="chip${p.id===STATE.artLogoPos?' active':''}" data-p="${p.id}">${p.label}</button>`).join('');
+  posWrap.querySelectorAll('.chip').forEach(ch=>{
+    ch.onclick=()=>{ posWrap.querySelectorAll('.chip').forEach(x=>x.classList.remove('active')); ch.classList.add('active');
+      STATE.artLogoPos = ch.dataset.p; renderArt(); };
+  });
+  const sizeWrap = document.getElementById('artLogoSize');
+  sizeWrap.innerHTML = LOGO_SIZES.map(s=>`<button class="chip${s.id===STATE.artLogoSize?' active':''}" data-s="${s.id}">${s.label}</button>`).join('');
+  sizeWrap.querySelectorAll('.chip').forEach(ch=>{
+    ch.onclick=()=>{ sizeWrap.querySelectorAll('.chip').forEach(x=>x.classList.remove('active')); ch.classList.add('active');
+      STATE.artLogoSize = ch.dataset.s; renderArt(); };
+  });
+}
+document.getElementById('artLogo').addEventListener('change', e=>{
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{ const img = new Image(); img.onload=()=>{
+    STATE.artLogoImg = img; STATE.artLogoEnabled = true;
+    document.getElementById('artLogoToggle').checked = true;
+    document.getElementById('logoOptions').classList.add('show');
+    renderArt();
+  }; img.src=reader.result; };
+  reader.readAsDataURL(file);
+});
+document.getElementById('artLogoToggle').addEventListener('change', e=>{
+  STATE.artLogoEnabled = e.target.checked;
+  document.getElementById('logoOptions').classList.toggle('show', STATE.artLogoEnabled);
+  renderArt();
+});
+
+function initArtColors(){
+  STATE.artColors = { bg: STATE.palette.bg, accent: STATE.palette.accent, text: STATE.palette.text };
+  document.getElementById('artColorBg').value = toHex(STATE.artColors.bg);
+  document.getElementById('artColorAccent').value = toHex(STATE.artColors.accent);
+  document.getElementById('artColorText').value = toHex(STATE.artColors.text);
+}
+function toHex(c){ return c.length===7 ? c : '#f6f1e7'; }
+['artColorBg','artColorAccent','artColorText'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', ()=>{
+    STATE.artColors.bg = document.getElementById('artColorBg').value;
+    STATE.artColors.accent = document.getElementById('artColorAccent').value;
+    STATE.artColors.text = document.getElementById('artColorText').value;
+    renderArtPaletteView();
+    renderArt();
+  });
+});
+document.getElementById('artColorReset').onclick = ()=>{ initArtColors(); renderArt(); };
+
+function renderArtFonts(){
+  const wrap = document.getElementById('artFonts');
+  wrap.innerHTML = FONT_OPTIONS.map((f,i)=>`<button class="chip${i===0?' active':''}" data-f="${f.id}" style="font-family:${f.family}">${f.label}</button>`).join('');
+  wrap.querySelectorAll('.chip').forEach(ch=>{
+    ch.onclick = ()=>{
+      wrap.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
+      ch.classList.add('active');
+      const opt = FONT_OPTIONS.find(f=>f.id===ch.dataset.f);
+      STATE.artFont = opt.family;
+      renderArt();
+    };
+  });
+}
+async function ensureFontLoaded(family){
+  try{
+    await Promise.all([
+      document.fonts.load('700 60px '+family),
+      document.fonts.load('600 60px '+family),
+      document.fonts.load('500 30px '+family),
+      document.fonts.load('400 30px '+family),
+      document.fonts.load('italic 500 50px '+family),
+    ]);
+  }catch(e){ /* fallback silently to system font */ }
+}
+
+const ART_TEMPLATES = [
+  {id:'tag-titulo', label:'Tag + Título'},
+  {id:'cofre', label:'Cofre'},
+  {id:'numero', label:'Número'},
+  {id:'frase', label:'Frase'},
+  {id:'foto', label:'Foto + texto'},
+  {id:'foto-frase', label:'Foto + Frase'},
+  {id:'tweet', label:'Estilo tweet'},
+  {id:'antes-depois', label:'Antes e Depois'},
+  {id:'mito-verdade', label:'Mito ou Verdade'},
+  {id:'whatsapp', label:'Depoimento'},
+  {id:'checklist', label:'Checklist'},
+];
+const ART_FORMATS = [
+  {id:'4:5', label:'Feed 4:5', w:1080, h:1350},
+  {id:'1:1', label:'Quadrado 1:1', w:1080, h:1080},
+  {id:'9:16', label:'Story 9:16', w:1080, h:1920},
+];
+function renderArtTemplates(){
+  const wrap = document.getElementById('artTemplates');
+  wrap.innerHTML = ART_TEMPLATES.map((t,i)=>`<button class="chip${i===0?' active':''}" data-t="${t.id}">${t.label}</button>`).join('');
+  wrap.querySelectorAll('.chip').forEach(ch=>{
+    ch.onclick=()=>{ wrap.querySelectorAll('.chip').forEach(x=>x.classList.remove('active')); ch.classList.add('active');
+      STATE.artTemplate = ch.dataset.t; updateCondFields(); renderArt(); };
+  });
+  updateCondFields();
+}
+function renderArtFormats(){
+  const wrap = document.getElementById('artFormats');
+  wrap.innerHTML = ART_FORMATS.map((f,i)=>`<button class="chip${i===0?' active':''}" data-f="${f.id}">${f.label}</button>`).join('');
+  wrap.querySelectorAll('.chip').forEach(ch=>{
+    ch.onclick=()=>{ wrap.querySelectorAll('.chip').forEach(x=>x.classList.remove('active')); ch.classList.add('active');
+      STATE.artFormat = ch.dataset.f; renderArt(); };
+  });
+}
+function renderArtPaletteView(){
+  const el = document.getElementById('artPaletteView');
+  const p = STATE.artColors || STATE.palette;
+  el.innerHTML = [p.bg, p.accent, p.text].map(c=>`<i style="background:${c}"></i>`).join('');
+}
+const FIELD_GROUPS = {
+  numero: ['numeroFields','footerFields'],
+  cofre: ['footerFields'],
+  frase: ['fraseFields'],
+  foto: ['fotoFields'],
+  'foto-frase': ['fotoFields','eventoFields'],
+  tweet: ['tweetFields'],
+  'antes-depois': ['antesDepoisFields'],
+  'mito-verdade': ['mitoVerdadeFields'],
+  whatsapp: ['whatsappFields'],
+  checklist: ['checklistFields'],
+};
+const TITLE_LABELS = {
+  whatsapp: 'Mensagem do depoimento',
+  checklist: 'Título do checklist',
+  'mito-verdade': 'Pergunta ou tema',
+};
+const HIDE_SUB = ['frase','mito-verdade','whatsapp'];
+const HIDE_TAG = ['whatsapp'];
+function updateCondFields(){
+  ['numeroFields','fraseFields','fotoFields','tweetFields','footerFields','eventoFields',
+   'antesDepoisFields','mitoVerdadeFields','whatsappFields','checklistFields'].forEach(id=>document.getElementById(id).classList.remove('show'));
+  (FIELD_GROUPS[STATE.artTemplate]||[]).forEach(id=>document.getElementById(id).classList.add('show'));
+  document.getElementById('subField').style.display = HIDE_SUB.includes(STATE.artTemplate) ? 'none' : 'block';
+  document.getElementById('tagField').style.display = HIDE_TAG.includes(STATE.artTemplate) ? 'none' : 'block';
+  document.getElementById('titleLabel').textContent = TITLE_LABELS[STATE.artTemplate] || 'Título / gancho';
+  if(STATE.artTemplate==='tweet') prefillTweetDefaults();
+}
+function prefillTweetDefaults(){
+  const timeEl = document.getElementById('artTweetTime');
+  if(!timeEl.value) timeEl.value = nowStamp();
+  const c = document.getElementById('artComments'); if(!c.value) c.value = String(randInt(20,300));
+  const r = document.getElementById('artRetweets'); if(!r.value) r.value = String(randInt(50,900));
+  const l = document.getElementById('artLikes'); if(!l.value) l.value = randLikes();
+}
+function nowStamp(){
+  const d = new Date();
+  const hh = String(d.getHours()).padStart(2,'0'), mm = String(d.getMinutes()).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0'), mo = String(d.getMonth()+1).padStart(2,'0');
+  return `${hh}:${mm} · ${dd}/${mo}/${d.getFullYear()}`;
+}
+function randInt(a,b){ return Math.floor(a + Math.random()*(b-a)); }
+function randLikes(){
+  const v = randInt(500, 4900);
+  return v >= 1000 ? (v/1000).toFixed(1).replace('.',',')+' mil' : String(v);
+}
+document.getElementById('artFoto').addEventListener('change', e=>loadImgTo(e, 'artFotoImg'));
+document.getElementById('artAvatar').addEventListener('change', e=>loadImgTo(e, 'artAvatarImg'));
+document.getElementById('artBeforeFoto').addEventListener('change', e=>loadImgTo(e, 'artBeforeImg'));
+document.getElementById('artAfterFoto').addEventListener('change', e=>loadImgTo(e, 'artAfterImg'));
+document.getElementById('artWhatsAvatar').addEventListener('change', e=>loadImgTo(e, 'artWhatsAvatarImg'));
+document.getElementById('artWhatsBg').addEventListener('change', e=>loadImgTo(e, 'artWhatsBgImg'));
+function loadImgTo(e, key){
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{ const img = new Image(); img.onload=()=>{ STATE[key]=img; renderArt(); }; img.src=reader.result; };
+  reader.readAsDataURL(file);
+}
+document.getElementById('artRender').onclick = renderArt;
+document.getElementById('artDownload').onclick = ()=>{
+  const canvas = document.getElementById('artCanvas');
+  const link = document.createElement('a');
+  link.download = (STATE.brand||'post').toLowerCase().replace(/\s+/g,'-')+'.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+};
+
+let renderArtSeq = 0;
+async function renderArt(){
+  const mySeq = ++renderArtSeq;
+  const font = STATE.artFont || FONT_OPTIONS[0].family;
+  await ensureFontLoaded(font);
+  if(mySeq !== renderArtSeq) return; // a newer render started meanwhile, drop this one
+
+  const fmt = ART_FORMATS.find(f=>f.id===STATE.artFormat) || ART_FORMATS[0];
+  const canvas = document.getElementById('artCanvas');
+  canvas.width = fmt.w; canvas.height = fmt.h;
+  const ctx = canvas.getContext('2d');
+  const p = STATE.artColors || STATE.palette;
+  const cardBg = shade(p.bg, 10);
+  paintBackground(ctx, fmt, p);
+
+  const tag = document.getElementById('artTag').value || '';
+  const title = document.getElementById('artTitle').value || 'Seu título aqui';
+  const sub = document.getElementById('artSub').value || '';
+
+  const pad = fmt.w*0.08;
+
+  function wrapText(text, x, y, maxWidth, lineHeight, weight, size, fam){
+    const fnt = `${weight} ${size}px ${fam||font}`;
+    ctx.font = fnt;
+    const words = text.split(' '); let line=''; const lines=[];
+    for(const w of words){
+      const test = line+w+' ';
+      if(ctx.measureText(test).width>maxWidth && line){ lines.push(line); line=w+' '; }
+      else line=test;
+    }
+    lines.push(line);
+    lines.forEach((l,i)=>ctx.fillText(l.trim(), x, y+i*lineHeight));
+    return lines.length*lineHeight;
+  }
+
+  function wrapTextCenter(text, cx, y, maxWidth, lineHeight, weight, size, fam){
+    ctx.font = `${weight} ${size}px ${fam||font}`;
+    const words = text.split(' '); let line=''; const lines=[];
+    for(const w of words){
+      const test = line+w+' ';
+      if(ctx.measureText(test).width>maxWidth && line){ lines.push(line); line=w+' '; }
+      else line=test;
+    }
+    lines.push(line);
+    ctx.textAlign='center';
+    lines.forEach((l,i)=>ctx.fillText(l.trim(), cx, y+i*lineHeight));
+    ctx.textAlign='left';
+    return lines.length*lineHeight;
+  }
+
+  if(STATE.artTemplate==='tag-titulo'){
+    if(tag){ ctx.font='600 26px Arial, sans-serif'; ctx.fillStyle=p.accent; roundRect(ctx,pad,pad,ctx.measureText(tag).width+40,54,27); ctx.fillStyle=p.bg;
+      ctx.fillText(tag, pad+20, pad+36); }
+    ctx.fillStyle = p.text; ctx.textBaseline='alphabetic';
+    const titleY = fmt.h*0.55;
+    const th = wrapText(title, pad, titleY, fmt.w-pad*2, 78, '600', 68);
+    if(sub){ ctx.fillStyle=p.accent; wrapText(sub, pad, titleY+th+20, fmt.w-pad*2, 40, '400', 32, 'Arial, sans-serif'); }
+    ctx.fillStyle=p.accent; ctx.font='600 30px Arial, sans-serif'; ctx.fillText((STATE.brand||'').toUpperCase(), pad, fmt.h-pad);
+  }
+  else if(STATE.artTemplate==='numero'){
+    // decorative circles
+    ctx.save();
+    ctx.fillStyle = 'rgba(255,255,255,0.06)';
+    ctx.beginPath(); ctx.arc(fmt.w*0.92, fmt.h*0.18, fmt.w*0.28, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.045)';
+    ctx.beginPath(); ctx.arc(fmt.w*0.78, fmt.h*0.32, fmt.w*0.14, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+
+    if(tag){
+      ctx.save();
+      ctx.shadowColor='rgba(0,0,0,.5)'; ctx.shadowBlur=8;
+      ctx.fillStyle = p.accent; ctx.font = '600 26px Arial, sans-serif';
+      const spaced = tag.toUpperCase().split('').join('\u200a\u200a');
+      ctx.fillText(spaced, pad, pad+30);
+      ctx.restore();
+    }
+
+    const num = document.getElementById('artNum').value || '1';
+    const footerSub = document.getElementById('artCofreSub').value || '';
+    const footerH = pad*0.9 + (STATE.brand?60:0) + (footerSub?46:0) + 40;
+
+    const numY = pad + 210;
+    ctx.fillStyle = p.text; ctx.font = `700 220px ${font}`;
+    ctx.fillText(num, pad, numY);
+
+    let ty = numY + 60;
+    ctx.fillStyle = p.accent;
+    const th = wrapText(title, pad, ty, fmt.w-pad*2, 60, '700', 50);
+    ty += th + 14;
+    if(sub){ ctx.fillStyle = 'rgba(255,255,255,.88)'; wrapText(sub, pad, ty, fmt.w-pad*2, 40, '400', 30, 'Arial, sans-serif'); }
+
+    let fy = fmt.h - footerH + 30;
+    ctx.fillStyle = p.accent; ctx.fillRect(pad, fy, 60, 4);
+    fy += 46;
+    if(STATE.brand){ ctx.fillStyle = p.text; ctx.font = '700 32px Arial, sans-serif'; ctx.fillText(STATE.brand, pad, fy); fy += 40; }
+    if(footerSub){ ctx.fillStyle = shade(p.text,-60); ctx.font = '400 26px Arial, sans-serif'; ctx.fillText(footerSub, pad, fy); }
+  }
+  else if(STATE.artTemplate==='frase'){
+    ctx.fillStyle=p.accent; ctx.font=`700 120px ${font}`; ctx.fillText('"', pad-10, fmt.h*0.30);
+    ctx.fillStyle=p.text;
+    const h = wrapText(title, pad, fmt.h*0.40, fmt.w-pad*2, 66, 'italic 500', 54);
+    const autor = document.getElementById('artAutor').value || STATE.brand || '';
+    ctx.fillStyle=p.accent;
+    wrapText('— '+autor, pad, fmt.h*0.40+h+40, fmt.w-pad*2, 40, '500', 32, 'Arial, sans-serif');
+  }
+  else if(STATE.artTemplate==='cofre'){
+    const margin = pad*0.4;
+    roundRectStroke(ctx, margin, margin, fmt.w-margin*2, fmt.h-margin*2, 24, p.accent, 2.5);
+    const innerX = margin + pad*0.6, innerW = fmt.w - innerX*2;
+
+    if(tag){
+      ctx.fillStyle = p.accent; ctx.font = '600 26px Arial, sans-serif';
+      const spaced = tag.toUpperCase().split('').join('\u200a\u200a');
+      ctx.fillText(spaced, innerX, margin+70);
+    }
+
+    // measure title+sub to center the block in the space between the tag and the footer
+    const footerSub = document.getElementById('artCofreSub').value || '';
+    const footerH = margin + (STATE.brand?60:0) + (footerSub?46:0) + 40;
+    const topY = margin + 120;
+    const bottomY = fmt.h - footerH;
+    const titleLines = measureWrapLines(title, innerW, 52, '700', font);
+    let blockH = 40 + titleLines*62; // dash gap + title
+    let subLines = 0;
+    if(sub){ subLines = measureWrapLines(sub, innerW, 30, '400', 'Arial, sans-serif'); blockH += 16 + subLines*40; }
+    let startY = topY + Math.max(0, (bottomY-topY-blockH)/2);
+
+    ctx.fillStyle = p.accent; ctx.fillRect(innerX, startY, 60, 5);
+    ctx.fillStyle = p.text;
+    const th = wrapText(title, innerX, startY+62, innerW, 62, '700', 52);
+    if(sub){ ctx.fillStyle = shade(p.text,-40); wrapText(sub, innerX, startY+62+th+16, innerW, 40, '400', 30, 'Arial, sans-serif'); }
+
+    // footer
+    let fy = fmt.h - footerH + 30;
+    ctx.fillStyle = p.accent; ctx.fillRect(innerX, fy, 60, 4);
+    fy += 46;
+    if(STATE.brand){ ctx.fillStyle = p.text; ctx.font = '700 32px Arial, sans-serif'; ctx.fillText(STATE.brand, innerX, fy); fy += 40; }
+    if(footerSub){ ctx.fillStyle = shade(p.text,-60); ctx.font = '400 26px Arial, sans-serif'; ctx.fillText(footerSub, innerX, fy); }
+  }
+  else if(STATE.artTemplate==='foto-frase'){
+    const photoH = fmt.h*0.56;
+    if(STATE.artFotoImg){ drawImgCover(ctx, STATE.artFotoImg, 0,0,fmt.w,photoH); }
+    else { ctx.fillStyle=shade(p.bg,15); ctx.fillRect(0,0,fmt.w,photoH); ctx.fillStyle=p.text; ctx.font='28px Arial, sans-serif';
+      ctx.fillText('Envie uma foto ao lado ⟵', pad, photoH/2); }
+
+    const gradTop = ctx.createLinearGradient(0,0,0,photoH*0.55);
+    gradTop.addColorStop(0,'rgba(0,0,0,.5)'); gradTop.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=gradTop; ctx.fillRect(0,0,fmt.w,photoH*0.55);
+
+    // date + time, top-left
+    const dateStr = document.getElementById('artEventDate').value || '';
+    const timeStr = document.getElementById('artEventTime').value || '';
+    let dy = pad+46;
+    if(dateStr){ ctx.fillStyle='#fff'; dy += wrapText(dateStr, pad, pad+46, fmt.w*0.5, 52, '700', 46); }
+    if(timeStr){ ctx.fillStyle='rgba(255,255,255,.85)'; ctx.font='600 22px Arial, sans-serif'; ctx.fillText(timeStr.toUpperCase(), pad, dy+8); }
+
+    // venue + address, top-right
+    const venue = document.getElementById('artEventVenue').value || '';
+    const address = document.getElementById('artEventAddress').value || '';
+    if(venue || address){
+      ctx.textAlign='right';
+      let vy = pad+20;
+      ctx.fillStyle='#fff'; ctx.font='22px Arial, sans-serif'; ctx.fillText('📍', fmt.w-pad, vy); vy+=34;
+      if(venue){ ctx.font='700 24px Arial, sans-serif'; ctx.fillText(venue.toUpperCase(), fmt.w-pad, vy); vy+=32; }
+      if(address){
+        ctx.font='400 22px Arial, sans-serif'; ctx.fillStyle='rgba(255,255,255,.85)';
+        address.split('\n').forEach(line=>{ if(line.trim()){ ctx.fillText(line.trim(), fmt.w-pad, vy); vy+=28; } });
+      }
+      ctx.textAlign='left';
+    }
+
+    // decorative cursive brand watermark near bottom of the photo
+    if(STATE.brand){
+      ctx.save();
+      ctx.fillStyle='rgba(255,255,255,.32)';
+      ctx.font='600 84px "Caveat", cursive';
+      ctx.fillText(STATE.brand, pad, photoH-24);
+      ctx.restore();
+    }
+
+    // bottom card — inverted colors (light card even on a dark theme)
+    const cardBgBottom = p.text, cardTextBottom = p.bg;
+    ctx.fillStyle = cardBgBottom; ctx.fillRect(0, photoH, fmt.w, fmt.h-photoH);
+    const cy0 = photoH + pad*0.55;
+    if(tag){
+      ctx.fillStyle = p.accent; ctx.font='600 24px Arial, sans-serif';
+      const spaced = tag.toUpperCase().split('').join('\u200a\u200a');
+      ctx.fillText(spaced, pad, cy0);
+    }
+    ctx.fillStyle=p.accent; ctx.fillRect(pad, cy0+18, 50, 4);
+    ctx.fillStyle = cardTextBottom;
+    const th2 = wrapText(title, pad, cy0+62, fmt.w-pad*2, 52, '700', 42);
+    let by2 = cy0+62+th2+12;
+    if(sub){ ctx.fillStyle = shade(cardTextBottom, 60); by2 += wrapText(sub, pad, by2, fmt.w-pad*2, 34, '400', 27, 'Arial, sans-serif') + 8; }
+    if(STATE.brand){ ctx.fillStyle = cardTextBottom; ctx.font='700 26px Arial, sans-serif'; ctx.fillText(STATE.brand, pad, by2+16); }
+  }
+  else if(STATE.artTemplate==='antes-depois'){
+    const halfW = fmt.w/2;
+    if(STATE.artBeforeImg) drawImgCover(ctx, STATE.artBeforeImg, 0,0,halfW,fmt.h);
+    else { ctx.fillStyle=shade(p.bg,8); ctx.fillRect(0,0,halfW,fmt.h); ctx.fillStyle=p.text; ctx.font='24px Arial, sans-serif'; ctx.fillText('Foto ANTES ⟵', pad*0.4, fmt.h/2); }
+    if(STATE.artAfterImg) drawImgCover(ctx, STATE.artAfterImg, halfW,0,halfW,fmt.h);
+    else { ctx.fillStyle=shade(p.bg,20); ctx.fillRect(halfW,0,halfW,fmt.h); ctx.fillStyle=p.text; ctx.font='24px Arial, sans-serif'; ctx.fillText('Foto DEPOIS ⟵', halfW+pad*0.4, fmt.h/2); }
+    ctx.fillStyle=p.accent; ctx.fillRect(halfW-3,0,6,fmt.h);
+
+    function pillLabel(text,x,align){
+      ctx.font='700 26px Arial, sans-serif';
+      const w = ctx.measureText(text).width+44;
+      const lx = align==='left'? x : x-w;
+      ctx.fillStyle=p.accent; roundRect(ctx, lx, pad*0.5, w, 50, 25);
+      ctx.fillStyle=p.bg; ctx.fillText(text, lx+22, pad*0.5+34);
+    }
+    pillLabel('ANTES', pad*0.5, 'left');
+    pillLabel('DEPOIS', fmt.w-pad*0.5, 'right');
+
+    if(tag || title){
+      const capH = 220;
+      const grad = ctx.createLinearGradient(0, fmt.h-capH, 0, fmt.h);
+      grad.addColorStop(0,'rgba(0,0,0,0)'); grad.addColorStop(1,'rgba(0,0,0,.82)');
+      ctx.fillStyle=grad; ctx.fillRect(0, fmt.h-capH, fmt.w, capH);
+      let cy = fmt.h - capH + 56;
+      if(tag){ ctx.fillStyle=p.accent; ctx.font='600 22px Arial, sans-serif'; ctx.fillText(tag.toUpperCase(), pad, cy); cy+=30; }
+      ctx.fillStyle='#fff';
+      wrapText(title, pad, cy+16, fmt.w-pad*2, 46, '700', 38);
+    }
+  }
+  else if(STATE.artTemplate==='mito-verdade'){
+    ctx.fillStyle = p.bg; ctx.fillRect(0,0,fmt.w,fmt.h);
+    const headerH = title ? 210 : 110;
+    if(tag){ ctx.fillStyle=p.accent; ctx.font='600 24px Arial, sans-serif';
+      const spaced = tag.toUpperCase().split('').join('\u200a\u200a');
+      wrapTextCenter(spaced, fmt.w/2, pad*0.65, fmt.w-pad*2, 30, '600', 24, 'Arial, sans-serif'); }
+    if(title){ ctx.fillStyle=p.text; wrapTextCenter(title, fmt.w/2, pad*0.65+56, fmt.w-pad*2, 48, '700', 40); }
+
+    const panelH = (fmt.h-headerH)/2;
+    const mito = document.getElementById('artMito').value || 'Escreva o mito aqui...';
+    const verdade = document.getElementById('artVerdade').value || 'Escreva a verdade aqui...';
+
+    ctx.fillStyle = 'rgba(242,84,84,0.14)'; ctx.fillRect(0,headerH,fmt.w,panelH);
+    ctx.fillStyle = '#f25454'; ctx.font='700 30px Arial, sans-serif';
+    ctx.fillText('❌  MITO', pad, headerH+64);
+    ctx.fillStyle = p.text;
+    wrapText(mito, pad, headerH+120, fmt.w-pad*2, 42, '400', 32, 'Arial, sans-serif');
+
+    const vY = headerH+panelH;
+    ctx.fillStyle = 'rgba(63,143,108,0.18)'; ctx.fillRect(0,vY,fmt.w,panelH);
+    ctx.fillStyle = '#3f8f6c'; ctx.font='700 30px Arial, sans-serif';
+    ctx.fillText('✅  VERDADE', pad, vY+64);
+    ctx.fillStyle = p.text;
+    wrapText(verdade, pad, vY+120, fmt.w-pad*2, 42, '400', 32, 'Arial, sans-serif');
+
+    if(STATE.brand){ ctx.fillStyle=p.accent; ctx.font='700 24px Arial, sans-serif'; ctx.fillText(STATE.brand.toUpperCase(), pad, fmt.h-pad*0.4); }
+  }
+  else if(STATE.artTemplate==='whatsapp'){
+    if(STATE.artWhatsBgImg){ drawImgCover(ctx, STATE.artWhatsBgImg, 0,0,fmt.w,fmt.h); }
+    else { ctx.fillStyle=shade(p.bg,15); ctx.fillRect(0,0,fmt.w,fmt.h); ctx.fillStyle=p.text; ctx.font='28px Arial, sans-serif';
+      ctx.fillText('Envie uma foto de fundo ao lado ⟵', pad, fmt.h/2); }
+
+    const bubbleBg='#ffffff', textDark='#111b21', textGray='#667781';
+    const waName = document.getElementById('artWhatsName').value || 'Cliente';
+    const bubbleX = pad*0.7, bubbleMaxW = fmt.w - bubbleX*2;
+    const msgLines = measureWrapLines(title, bubbleMaxW-56, 32, '400', 'Arial, sans-serif');
+    const bubbleH = 46 + msgLines*42 + 34;
+    const nameH = 76;
+    const bubbleY = fmt.h - pad - bubbleH;
+    const nameY = bubbleY - nameH;
+
+    // soft scrim behind the whole block for legibility over any photo
+    const scrimTop = Math.max(0, nameY-30);
+    const grad = ctx.createLinearGradient(0, scrimTop, 0, fmt.h);
+    grad.addColorStop(0,'rgba(0,0,0,0)'); grad.addColorStop(1,'rgba(0,0,0,.4)');
+    ctx.fillStyle = grad; ctx.fillRect(0, scrimTop, fmt.w, fmt.h-scrimTop);
+
+    // avatar + client name
+    const av = STATE.artWhatsAvatarImg;
+    const avCy = nameY + nameH/2 + 6;
+    ctx.save(); ctx.beginPath(); ctx.arc(bubbleX+24, avCy, 24, 0, Math.PI*2); ctx.clip();
+    if(av) drawImgCover(ctx, av, bubbleX, avCy-24, 48,48); else { ctx.fillStyle=p.accent; ctx.fillRect(bubbleX, avCy-24, 48,48);
+      ctx.fillStyle='#fff'; ctx.font='700 22px Arial, sans-serif'; ctx.textAlign='center'; ctx.fillText((waName[0]||'C').toUpperCase(), bubbleX+24, avCy+8); ctx.textAlign='left'; }
+    ctx.restore();
+    ctx.fillStyle='#fff'; ctx.font='700 28px Arial, sans-serif';
+    ctx.fillText(waName, bubbleX+62, avCy+10);
+
+    // message bubble
+    ctx.save();
+    ctx.shadowColor='rgba(0,0,0,.3)'; ctx.shadowBlur=12; ctx.shadowOffsetY=4;
+    ctx.fillStyle = bubbleBg; roundRect(ctx, bubbleX, bubbleY, bubbleMaxW, bubbleH, 20);
+    ctx.restore();
+    ctx.fillStyle = bubbleBg;
+    ctx.beginPath(); ctx.moveTo(bubbleX+18, bubbleY); ctx.lineTo(bubbleX+34, bubbleY-16); ctx.lineTo(bubbleX+50, bubbleY); ctx.closePath(); ctx.fill();
+
+    ctx.fillStyle = textDark;
+    wrapText(title, bubbleX+26, bubbleY+42, bubbleMaxW-52, 42, '400', 32, 'Arial, sans-serif');
+
+    const waTime = document.getElementById('artWhatsTime').value || (()=>{ const d=new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); })();
+    ctx.fillStyle = textGray; ctx.font='22px Arial, sans-serif'; ctx.textAlign='right';
+    ctx.fillText(waTime, bubbleX+bubbleMaxW-20, bubbleY+bubbleH-16);
+    ctx.textAlign='left';
+
+    if(STATE.brand){ ctx.fillStyle='#fff'; ctx.font='700 22px Arial, sans-serif';
+      ctx.fillText(STATE.brand, bubbleX, Math.min(fmt.h-pad*0.35, nameY-16)); }
+  }
+  else if(STATE.artTemplate==='checklist'){
+    if(tag){ ctx.fillStyle=p.accent; ctx.font='600 26px Arial, sans-serif';
+      const spaced = tag.toUpperCase().split('').join('\u200a\u200a'); ctx.fillText(spaced, pad, pad+30); }
+    ctx.fillStyle=p.text;
+    let y = pad+110;
+    const th = wrapText(title, pad, y, fmt.w-pad*2, 60, '700', 50);
+    y += th+10;
+    const subVal = document.getElementById('artSub').value || '';
+    if(subVal){ ctx.fillStyle=shade(p.text,-30); y += wrapText(subVal, pad, y+22, fmt.w-pad*2, 38, '400', 28, 'Arial, sans-serif')+10; y += 12; }
+    y += 36;
+
+    const itemsRaw = document.getElementById('artChecklist').value || '';
+    const items = itemsRaw.split('\n').map(s=>s.trim()).filter(Boolean);
+    items.forEach(item=>{
+      roundRectStroke(ctx, pad, y-32, 40, 40, 8, p.accent, 3);
+      ctx.fillStyle=p.accent; ctx.font='700 28px Arial, sans-serif'; ctx.fillText('✓', pad+10, y-2);
+      ctx.fillStyle=p.text;
+      const ih = wrapText(item, pad+58, y, fmt.w-pad*2-58, 40, '400', 32, 'Arial, sans-serif');
+      y += Math.max(ih,50) + 26;
+    });
+
+    if(STATE.brand){ ctx.fillStyle=p.accent; ctx.font='700 26px Arial, sans-serif'; ctx.fillText(STATE.brand.toUpperCase(), pad, fmt.h-pad*0.5); }
+  }
+  else if(STATE.artTemplate==='foto'){
+    if(STATE.artFotoImg){ drawImgCover(ctx, STATE.artFotoImg, 0,0,fmt.w,fmt.h); }
+    else { ctx.fillStyle=shade(p.bg,15); ctx.fillRect(0,0,fmt.w,fmt.h); ctx.fillStyle=p.text; ctx.font='28px Arial, sans-serif';
+      ctx.fillText('Envie uma foto ao lado ⟵', pad, fmt.h/2); }
+
+    // script fonts (Caveat) render taller loops/descenders — give them extra line-height + margin
+    const isScript = /Caveat/i.test(font);
+    const titleLH = isScript ? 78 : 62;
+    const extraSafety = isScript ? 40 : 0;
+
+    // measure how tall the text block will be, so it never gets cropped at the bottom
+    const titleLines = measureWrapLines(title, fmt.w-pad*2, 56, '700', font);
+    let contentH = 70 + titleLines*titleLH; // gap from dash to title start + title lines
+    const hasSub = !!sub;
+    let subLines = 0;
+    if(hasSub){ subLines = measureWrapLines(sub, fmt.w-pad*2, 32, '400', 'Arial, sans-serif'); contentH += 14 + subLines*42; }
+    if(STATE.brand){ contentH += 34; }
+    contentH += extraSafety;
+    const bottomMargin = pad*1.1;
+    let dashY = fmt.h - bottomMargin - contentH;
+    dashY = Math.max(dashY, fmt.h*0.1);
+
+    const grad = ctx.createLinearGradient(0, Math.max(0,dashY-100), 0, fmt.h);
+    grad.addColorStop(0,'rgba(0,0,0,0)'); grad.addColorStop(1,'rgba(0,0,0,.82)');
+    ctx.fillStyle=grad; ctx.fillRect(0,Math.max(0,dashY-100),fmt.w,fmt.h);
+
+    if(tag){
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,0,0,.65)'; ctx.shadowBlur = 10; ctx.shadowOffsetY = 2;
+      ctx.fillStyle = p.accent; ctx.font = '600 26px Arial, sans-serif';
+      const spaced = tag.toUpperCase().split('').join('\u200a\u200a');
+      ctx.fillText(spaced, pad, pad+30);
+      ctx.restore();
+    }
+
+    // accent dash above the title
+    ctx.fillStyle = p.accent; ctx.fillRect(pad, dashY, 70, 6);
+
+    ctx.fillStyle='#fff';
+    const th = wrapText(title, pad, dashY+70, fmt.w-pad*2, titleLH, '700', 56);
+    let by = dashY+70+th+8;
+    if(hasSub){ ctx.fillStyle='rgba(255,255,255,.88)'; by += wrapText(sub, pad, by, fmt.w-pad*2, 42, '400', 32, 'Arial, sans-serif') + 14; }
+    if(STATE.brand){ ctx.fillStyle=p.accent; ctx.font='700 26px Arial, sans-serif';
+      ctx.fillText(STATE.brand.toUpperCase(), pad, by+8); }
+  }
+  else if(STATE.artTemplate==='tweet'){
+    const cardBgTw = '#fdfaf5', textDark = '#0f1419', textGray = '#536471', divider = '#e6e1d8';
+    const cardX=pad*0.7, cardW=fmt.w-pad*1.4;
+    const innerX = cardX+50, innerW = cardW-100;
+    const headerH = 170; // avatar + name + handle block, above the tweet text
+    const textLineH = 50, textSize = 38;
+    const titleLines = measureWrapLines(title, innerW, textSize, '400', 'Arial, sans-serif');
+    let textH = titleLines*textLineH;
+    const hasSub = !!sub;
+    if(hasSub) textH += 24 + measureWrapLines(sub, innerW, textSize, '400', 'Arial, sans-serif')*textLineH;
+
+    const cardY = fmt.h*0.22;
+    const tsOffset = headerH + textH + 46;      // timestamp baseline, relative to cardY
+    const dividerOffset = tsOffset + 34;
+    const statsOffset = dividerOffset + 56;
+    const cardH = Math.min(statsOffset + 50, fmt.h - cardY - pad*0.5);
+
+    ctx.fillStyle = cardBgTw; roundRect(ctx,cardX,cardY,cardW,cardH,36);
+    let cy = cardY+70;
+
+    // avatar
+    const av = STATE.artAvatarImg;
+    ctx.save(); ctx.beginPath(); ctx.arc(innerX+38,cy,38,0,Math.PI*2); ctx.clip();
+    if(av) drawImgCover(ctx, av, innerX,cy-38,76,76); else { ctx.fillStyle=p.accent; ctx.fillRect(innerX,cy-38,76,76);
+      ctx.fillStyle='#fff'; ctx.font='700 30px Arial, sans-serif'; ctx.textAlign='center';
+      ctx.fillText(((STATE.brand||'?')[0]||'?').toUpperCase(), innerX+38, cy+11); ctx.textAlign='left'; }
+    ctx.restore();
+
+    // name + handle (no verified badge)
+    ctx.fillStyle = textDark; ctx.font = '700 32px Arial, sans-serif';
+    const nameX = innerX+96;
+    ctx.fillText(STATE.brand||'', nameX, cy-6);
+    ctx.fillStyle = textGray; ctx.font = '28px Arial, sans-serif';
+    ctx.fillText(document.getElementById('artHandle').value || '@seu_negocio', nameX, cy+30);
+
+    // tweet text
+    ctx.fillStyle = textDark;
+    let ty = cardY + headerH;
+    ty += wrapText(title, innerX, ty, innerW, textLineH, '400', textSize, 'Arial, sans-serif') + (hasSub?24:0);
+    if(hasSub) wrapText(sub, innerX, ty, innerW, textLineH, '400', textSize, 'Arial, sans-serif');
+
+    // timestamp
+    const timeStr = document.getElementById('artTweetTime').value || nowStamp();
+    ctx.fillStyle = textGray; ctx.font = '26px Arial, sans-serif';
+    const tsY = cardY + tsOffset;
+    ctx.fillText(timeStr, innerX, tsY);
+
+    // divider
+    ctx.strokeStyle = divider; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(innerX, cardY+dividerOffset); ctx.lineTo(innerX+innerW, cardY+dividerOffset); ctx.stroke();
+
+    // stats row
+    const statsY = cardY + statsOffset;
+    const comments = document.getElementById('artComments').value || '0';
+    const retweets = document.getElementById('artRetweets').value || '0';
+    const likes = document.getElementById('artLikes').value || '0';
+    ctx.font = '32px Arial, sans-serif'; ctx.fillStyle = textGray;
+    ctx.fillText('💬', innerX, statsY);
+    ctx.fillText(comments, innerX+48, statsY);
+    const c1 = innerX + 48 + ctx.measureText(comments).width + 60;
+    ctx.fillStyle = '#00ba7c'; ctx.fillText('🔁', c1, statsY);
+    ctx.fillStyle = textGray; ctx.fillText(retweets, c1+48, statsY);
+    const c2 = c1 + 48 + ctx.measureText(retweets).width + 60;
+    ctx.fillStyle = '#f91880'; ctx.fillText('❤️', c2, statsY);
+    ctx.fillStyle = textGray; ctx.fillText(likes, c2+48, statsY);
+  }
+
+  drawLogoOverlay(ctx, fmt, pad);
+}
+function drawLogoOverlay(ctx, fmt, pad){
+  if(!STATE.artLogoEnabled || !STATE.artLogoImg) return;
+  const img = STATE.artLogoImg;
+  const sizeOpt = LOGO_SIZES.find(s=>s.id===STATE.artLogoSize) || LOGO_SIZES[1];
+  const scale = fmt.w/1080;
+  const box = sizeOpt.px*scale;
+  const margin = pad*0.55;
+  const ir = img.width/img.height;
+  let dw, dh;
+  if(ir>=1){ dw=box; dh=box/ir; } else { dh=box; dw=box*ir; }
+  let x,y;
+  switch(STATE.artLogoPos){
+    case 'top-left': x=margin; y=margin; break;
+    case 'top-right': x=fmt.w-margin-dw; y=margin; break;
+    case 'bottom-left': x=margin; y=fmt.h-margin-dh; break;
+    case 'bottom-right': x=fmt.w-margin-dw; y=fmt.h-margin-dh; break;
+    case 'center': default: x=(fmt.w-dw)/2; y=(fmt.h-dh)/2; break;
+  }
+  ctx.save();
+  ctx.shadowColor='rgba(0,0,0,.45)'; ctx.shadowBlur=14; ctx.shadowOffsetY=3;
+  ctx.drawImage(img, x, y, dw, dh);
+  ctx.restore();
+}
+function measureWrapLines(text, maxWidth, size, weight, fam){
+  const dummyCtx = document.getElementById('artCanvas').getContext('2d');
+  dummyCtx.font = `${weight} ${size}px ${fam}`;
+  const words = text.split(' '); let line=''; let lines=0;
+  for(const w of words){
+    const test = line+w+' ';
+    if(dummyCtx.measureText(test).width>maxWidth && line){ lines++; line=w+' '; }
+    else line=test;
+  }
+  return lines+1;
+}
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); ctx.fill();
+}
+function roundRectStroke(ctx,x,y,w,h,r,color,lineWidth){
+  ctx.save();
+  ctx.strokeStyle = color; ctx.lineWidth = lineWidth;
+  ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); ctx.stroke();
+  ctx.restore();
+}
+function drawImgCover(ctx,img,x,y,w,h){
+  const ir = img.width/img.height, tr = w/h; let sx,sy,sw,sh;
+  if(ir>tr){ sh=img.height; sw=sh*tr; sx=(img.width-sw)/2; sy=0; } else { sw=img.width; sh=sw/tr; sx=0; sy=(img.height-sh)/2; }
+  ctx.drawImage(img,sx,sy,sw,sh,x,y,w,h);
+}
+['artTag','artTitle','artSub','artNum','artAutor','artHandle','artTweetTime','artComments','artRetweets','artLikes','artCofreSub','artEventDate','artEventTime','artEventVenue','artEventAddress','artMito','artVerdade','artWhatsName','artWhatsTime','artChecklist'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', ()=>renderArt());
+});
+
+/* ================= UTIL ================= */
+function copyText(t){
+  navigator.clipboard.writeText(t).then(()=>toast('Copiado! 📋')).catch(()=>toast('Não foi possível copiar'));
+}
+function toast(msg){
+  const el = document.getElementById('toast'); el.textContent = msg; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 1800);
+}
+
+/* ================= BACKEND DE IA (tendências reais + ganchos) ================= */
+function getBackendUrl(){ return localStorage.getItem('ec_backend_url') || ''; }
+function setBackendUrl(url){ localStorage.setItem('ec_backend_url', url.replace(/\/$/,'')); }
+
+const backendModal = document.getElementById('backendModal');
+function openBackendModal(){
+  document.getElementById('backendUrlInput').value = getBackendUrl();
+  backendModal.style.display = 'flex';
+}
+document.getElementById('settingsBtn').onclick = openBackendModal;
+document.getElementById('closeBackendModal').onclick = ()=> backendModal.style.display = 'none';
+document.getElementById('saveBackendModal').onclick = ()=>{
+  setBackendUrl(document.getElementById('backendUrlInput').value.trim());
+  backendModal.style.display = 'none';
+  toast('Backend salvo ✅');
+};
+
+async function apiPost(path, body){
+  const base = getBackendUrl();
+  if(!base){ openBackendModal(); throw new Error('Configure a URL do backend (ícone ⚙ no topo) antes de continuar.'); }
+  const res = await fetch(base+path, {
+    method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)
+  });
+  if(!res.ok){
+    const err = await res.json().catch(()=>({}));
+    throw new Error(err.error || `Erro ${res.status} ao chamar ${path}`);
+  }
+  return res.json();
+}
+
+/* -------- Tendências ao vivo (substitui o conteúdo estático da aba Radar) -------- */
+function categoryLabelPt(cat){
+  const map = { noticia:'📰 Notícia', curiosidade:'🧠 Curiosidade', tendencia:'🔥 Tendência',
+    dado:'📊 Dado', polemica:'⚠️ Polêmica', pergunta_frequente:'🎯 Pergunta frequente',
+    data_comemorativa:'🗓️ Data comemorativa' };
+  return map[cat] || 'Tendência';
+}
+function trendCardHTML(t, idx){
+  return `<div class="post-card">
+    <span class="cat">${categoryLabelPt(t.category)} · ${t.score}/100</span>
+    <h4>${t.title}</h4>
+    <p>${t.why||''}</p>
+    <div class="row">
+      <button class="mini-btn primary" data-act="art" data-titulo="${escAttr(t.title)}" data-legenda="${escAttr(t.why||'')}">🎨 Criar arte</button>
+      <button class="mini-btn" data-act="copy" data-legenda="${escAttr(t.title)}">📋 Copiar</button>
+      <button class="mini-btn" data-act="toroteiro" data-idx="${idx}">➕ Enviar pro Roteiro</button>
+    </div>
+    <div class="roteiro-group-picker" id="rgPicker-${idx}" style="display:none;margin-top:10px">
+      <p class="hint" style="margin:0 0 6px">Em qual grupo do Roteiro isso se encaixa?</p>
+      <div class="chip-row">${ROTEIRO_GROUPS.map(g=>`<button class="chip" data-group="${g}" data-idx="${idx}">${g}</button>`).join('')}</div>
+    </div>
+  </div>`;
+}
+const ROTEIRO_GROUPS = ["Dicas e cuidados","Bastidores","Mitos e verdades","Chamadas","Outros"];
+let currentTrends = [];
+async function fetchLiveTrends(){
+  const status = document.getElementById('radarStatus');
+  const list = document.getElementById('radarList');
+  status.textContent = 'Buscando tendências para "'+STATE.niche+'"...';
+  try{
+    const data = await apiPost('/api/trends', { niche: STATE.niche, description: STATE.brand ? `Negócio: ${STATE.brand}` : '' });
+    const topics = (data.topics||[]).sort((a,b)=>b.score-a.score);
+    currentTrends = topics;
+    status.textContent = topics.length ? '' : 'Nenhuma tendência encontrada, tente de novo.';
+    list.innerHTML = topics.map((t,i)=>trendCardHTML(t,i)).join('');
+    wireTrendButtons(list);
+  }catch(e){
+    status.textContent = '❌ ' + e.message;
+  }
+}
+function wireTrendButtons(container){
+  wirePostButtons(container);
+  container.querySelectorAll('[data-act="toroteiro"]').forEach(b=>{
+    b.onclick = ()=>{
+      const picker = document.getElementById('rgPicker-'+b.dataset.idx);
+      picker.style.display = picker.style.display==='none' ? 'block' : 'none';
+    };
+  });
+  container.querySelectorAll('.roteiro-group-picker [data-group]').forEach(chip=>{
+    chip.onclick = ()=>{
+      const t = currentTrends[+chip.dataset.idx];
+      if(!t) return;
+      STATE.content.roteiros.push({
+        categoria: chip.dataset.group,
+        titulo: t.title,
+        estrutura: 'Baseado numa tendência atual encontrada pela IA.',
+        exemplo: t.why || t.title,
+      });
+      document.getElementById('rgPicker-'+chip.dataset.idx).style.display = 'none';
+      renderRoteiros(STATE.content);
+      toast('Enviado para Roteiro · '+chip.dataset.group+' ✅');
+    };
+  });
+}
+document.getElementById('fetchTrendsBtn').onclick = fetchLiveTrends;
+
+/* -------- Hoje / Guia / Frases com IA -------- */
+async function fetchLiveHoje(){
+  const status = document.getElementById('hojeStatus');
+  status.textContent = 'Gerando posts de hoje...';
+  try{
+    const data = await apiPost('/api/hoje', { niche: STATE.niche, description: STATE.brand ? `Negócio: ${STATE.brand}` : '' });
+    STATE.content.hoje = data.posts || STATE.content.hoje;
+    status.textContent = '';
+    renderHoje(STATE.content);
+  }catch(e){ status.textContent = '❌ ' + e.message; }
+}
+async function fetchLiveGuia(){
+  const status = document.getElementById('guiaStatus');
+  status.textContent = 'Gerando conteúdo do guia...';
+  try{
+    const data = await apiPost('/api/guia', { niche: STATE.niche, description: STATE.brand ? `Negócio: ${STATE.brand}` : '' });
+    STATE.content.guia = data.items || STATE.content.guia;
+    status.textContent = '';
+    renderGuia(STATE.content);
+  }catch(e){ status.textContent = '❌ ' + e.message; }
+}
+async function fetchLiveFrases(){
+  const status = document.getElementById('frasesStatus');
+  status.textContent = 'Gerando frases...';
+  try{
+    const data = await apiPost('/api/frases', { niche: STATE.niche, description: STATE.brand ? `Negócio: ${STATE.brand}` : '' });
+    STATE.content.frases = data.frases || STATE.content.frases;
+    status.textContent = '';
+    renderFrases(STATE.content);
+  }catch(e){ status.textContent = '❌ ' + e.message; }
+}
+document.getElementById('fetchHojeBtn').onclick = fetchLiveHoje;
+document.getElementById('fetchGuiaBtn').onclick = fetchLiveGuia;
+document.getElementById('fetchFrasesBtn').onclick = fetchLiveFrases;
+
+/* -------- Gerador de ganchos (IA) -------- */
+function renderHooksList(hooks){
+  const wrap = document.getElementById('hooksList');
+  wrap.innerHTML = hooks.map(h=>`<button class="mini-btn" style="text-align:left;white-space:normal" data-hook="${escAttr(h)}">${h}</button>`).join('');
+  wrap.querySelectorAll('[data-hook]').forEach(btn=>{
+    btn.onclick = ()=>{
+      document.getElementById('artTitle').value = btn.dataset.hook;
+      renderArt();
+    };
+  });
+}
+document.getElementById('genHooksBtn').onclick = async ()=>{
+  const status = document.getElementById('hooksStatus');
+  status.textContent = 'Gerando ganchos...';
+  document.getElementById('hooksList').innerHTML = '';
+  try{
+    const topic = document.getElementById('artTag').value.trim() || document.getElementById('artTitle').value.trim() || STATE.niche;
+    const data = await apiPost('/api/hooks', { niche: STATE.niche, topic });
+    status.textContent = '';
+    renderHooksList(data.hooks || []);
+  }catch(e){
+    status.textContent = '❌ ' + e.message;
+  }
+};
+
+// busca as tendências automaticamente na primeira vez que a aba é aberta
+let radarFetchedOnce = false;
+document.getElementById('tabs').addEventListener('click', e=>{
+  const btn = e.target.closest('.tab'); if(!btn) return;
+  if(btn.dataset.tab==='radar' && !radarFetchedOnce){
+    radarFetchedOnce = true;
+    fetchLiveTrends();
+  }
+});
+if(!getBackendUrl()){
+  setTimeout(()=>toast('Configure o backend de IA no ícone ⚙ para tendências e ganchos'), 1000);
+}
+</script>
+</body>
+</html>
