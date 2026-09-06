@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Estúdio de Conteúdo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ===== TOP BAR ===== -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">EC</span>
+      <span class="brand-name">Estúdio de Conteúdo</span>
+    </div>
+    <div class="topbar-right">
+      <span class="niche-pill" id="nichePill" hidden></span>
+      <button class="icon-btn" id="settingsBtn" title="Configurações">⚙</button>
+    </div>
+  </header>
+
+  <div class="layout">
+
+    <!-- ===== STEP RAIL ===== -->
+    <nav class="rail" id="rail">
+      <button class="rail-step" data-step="niche">
+        <span class="rail-num">01</span><span>Nicho</span>
+      </button>
+      <button class="rail-step" data-step="trends" disabled>
+        <span class="rail-num">02</span><span>Tendências</span>
+      </button>
+      <button class="rail-step" data-step="format" disabled>
+        <span class="rail-num">03</span><span>Formato</span>
+      </button>
+      <button class="rail-step" data-step="design" disabled>
+        <span class="rail-num">04</span><span>Design</span>
+      </button>
+      <button class="rail-step" data-step="identity" disabled>
+        <span class="rail-num">05</span><span>Identidade</span>
+      </button>
+      <button class="rail-step" data-step="copy" disabled>
+        <span class="rail-num">06</span><span>Copy</span>
+      </button>
+      <button class="rail-step" data-step="preview" disabled>
+        <span class="rail-num">07</span><span>Preview</span>
+      </button>
+      <button class="rail-step" data-step="library">
+        <span class="rail-num">08</span><span>Biblioteca</span>
+      </button>
+    </nav>
+
+    <!-- ===== MAIN ===== -->
+    <main class="main">
+
+      <!-- ---------- 01 NICHO ---------- -->
+      <section class="step" id="step-niche">
+        <h1 class="step-title">Qual é o seu nicho?</h1>
+        <p class="step-sub">Isso ajusta toda a busca de assuntos e o tom da IA para o seu trabalho.</p>
+
+        <div class="chip-grid" id="nicheChips">
+          <button class="chip" data-niche="Fisioterapia">Fisioterapia</button>
+          <button class="chip" data-niche="Odontologia">Odontologia</button>
+          <button class="chip" data-niche="Direito">Direito</button>
+          <button class="chip" data-niche="Fitness">Fitness</button>
+          <button class="chip" data-niche="Imobiliário">Imobiliário</button>
+          <button class="chip" data-niche="Estética">Estética</button>
+          <button class="chip" data-niche="Psicologia">Psicologia</button>
+          <button class="chip" data-niche="Alimentação">Alimentação</button>
+          <button class="chip" data-niche="Igreja">Igreja</button>
+          <button class="chip" data-niche="Marketing">Marketing</button>
+        </div>
+        <input type="text" id="nicheCustom" class="text-input" placeholder="Ou digite outro nicho…" />
+
+        <label class="field-label" for="nicheDescription">Descreva seu trabalho</label>
+        <textarea id="nicheDescription" class="textarea" rows="3"
+          placeholder="Ex: Sou fisioterapeuta ortopédico e esportivo, especializado em reabilitação, quiropraxia e performance."></textarea>
+
+        <div class="step-actions">
+          <button class="btn btn-primary" id="toTrendsBtn" disabled>Continuar</button>
+        </div>
+      </section>
+
+      <!-- ---------- 02 TENDÊNCIAS ---------- -->
+      <section class="step" id="step-trends" hidden>
+        <div class="step-head-row">
+          <div>
+            <h1 class="step-title">Central de Novidades</h1>
+            <p class="step-sub">Assuntos em alta agora para o seu nicho, com potencial de engajamento.</p>
+          </div>
+          <button class="btn btn-primary" id="fetchTrendsBtn">🔎 Buscar tendências agora</button>
+        </div>
+
+        <div class="highlight-box" id="todayPick" hidden>
+          <span class="highlight-label">✨ O que eu devo postar hoje?</span>
+          <div id="todayPickBody"></div>
+        </div>
+
+        <div id="trendsStatus" class="status-text"></div>
+        <div class="topic-grid" id="topicGrid"></div>
+
+        <div class="step-actions">
+          <button class="btn btn-ghost" data-back="niche">Voltar</button>
+          <button class="btn btn-primary" id="toFormatBtn" disabled>Continuar</button>
+        </div>
+      </section>
+
+      <!-- ---------- 03 FORMATO ---------- -->
+      <section class="step" id="step-format" hidden>
+        <h1 class="step-title">Como você quer publicar?</h1>
+        <p class="step-sub" id="chosenTopicLabel"></p>
+
+        <div class="format-toggle">
+          <button class="toggle-btn active" data-format="feed">Feed</button>
+          <button class="toggle-btn" data-format="stories">Stories</button>
+        </div>
+
+        <div class="chip-grid" id="subformatFeed">
+          <button class="chip" data-sub="Post único">Post único</button>
+          <button class="chip" data-sub="Carrossel">Carrossel</button>
+          <button class="chip" data-sub="Foto + texto">Foto + texto</button>
+          <button class="chip" data-sub="Infográfico">Infográfico</button>
+          <button class="chip" data-sub="Antes/depois">Antes/depois</button>
+          <button class="chip" data-sub="Frase">Frase</button>
+          <button class="chip" data-sub="Lista">Lista</button>
+        </div>
+        <div class="chip-grid" id="subformatStories" hidden>
+          <button class="chip" data-sub="Story único">Story único</button>
+          <button class="chip" data-sub="Sequência de stories">Sequência de stories</button>
+          <button class="chip" data-sub="Enquete">Enquete</button>
+          <button class="chip" data-sub="Quiz">Quiz</button>
+          <button class="chip" data-sub="Caixa de perguntas">Caixa de perguntas</button>
+          <button class="chip" data-sub="CTA">CTA</button>
+          <button class="chip" data-sub="Story educativo">Story educativo</button>
+        </div>
+
+        <div class="step-actions">
+          <button class="btn btn-ghost" data-back="trends">Voltar</button>
+          <button class="btn btn-primary" id="toDesignBtn" disabled>Continuar</button>
+        </div>
+      </section>
+
+      <!-- ---------- 04 DESIGN ---------- -->
+      <section class="step" id="step-design" hidden>
+        <h1 class="step-title">Escolha o padrão de design</h1>
+        <p class="step-sub">20 composições diferentes — todas vão herdar sua identidade visual.</p>
+        <div class="pattern-grid" id="patternGrid"></div>
+
+        <div class="step-actions">
+          <button class="btn btn-ghost" data-back="format">Voltar</button>
+          <button class="btn btn-primary" id="toIdentityBtn" disabled>Continuar</button>
+        </div>
+      </section>
+
+      <!-- ---------- 05 IDENTIDADE ---------- -->
+      <section class="step" id="step-identity" hidden>
+        <h1 class="step-title">Sua identidade visual</h1>
+        <p class="step-sub">Essas cores e sua logo serão usadas em todos os designs.</p>
+
+        <div class="identity-grid">
+          <div class="identity-col">
+            <div class="color-row" data-color="primary">
+              <label>Cor principal</label>
+              <div class="color-input-wrap">
+                <input type="color" value="#E8336D" />
+                <input type="text" class="hex-input" value="#E8336D" />
+              </div>
+            </div>
+            <div class="color-row" data-color="secondary">
+              <label>Cor secundária</label>
+              <div class="color-input-wrap">
+                <input type="color" value="#14131B" />
+                <input type="text" class="hex-input" value="#14131B" />
+              </div>
+            </div>
+            <div class="color-row" data-color="accent">
+              <label>Cor de destaque</label>
+              <div class="color-input-wrap">
+                <input type="color" value="#FF9F1C" />
+                <input type="text" class="hex-input" value="#FF9F1C" />
+              </div>
+            </div>
+            <div class="color-row" data-color="text">
+              <label>Cor do texto</label>
+              <div class="color-input-wrap">
+                <input type="color" value="#14131B" />
+                <input type="text" class="hex-input" value="#14131B" />
+              </div>
+            </div>
+            <button class="btn btn-ghost small" id="addColorBtn">+ Adicionar cor</button>
+            <div id="extraColors"></div>
+          </div>
+
+          <div class="identity-col">
+            <label class="field-label">Logo</label>
+            <div class="upload-box" id="logoUploadBox">
+              <input type="file" id="logoInput" accept="image/png, image/jpeg" hidden />
+              <span id="logoUploadText">Clique para enviar sua logo (PNG/JPG)</span>
+              <img id="logoPreview" hidden />
+            </div>
+            <label class="checkbox-row">
+              <input type="checkbox" id="useLogoCheckbox" />
+              Usar logo automaticamente nos designs
+            </label>
+            <button class="btn btn-ghost small" id="extractColorsBtn" disabled>🎨 Extrair cores da minha logo</button>
+
+            <label class="field-label">Posição da logo</label>
+            <select class="select-input" id="logoPosition">
+              <option value="canto-superior">Logo canto superior</option>
+              <option value="canto-inferior">Logo canto inferior</option>
+              <option value="central">Logo central</option>
+              <option value="discreta">Logo discreta</option>
+              <option value="grande">Logo grande</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="step-actions">
+          <button class="btn btn-ghost" data-back="design">Voltar</button>
+          <button class="btn btn-primary" id="toCopyBtn">Continuar</button>
+        </div>
+      </section>
+
+      <!-- ---------- 06 COPY ---------- -->
+      <section class="step" id="step-copy" hidden>
+        <h1 class="step-title">IA de copy</h1>
+
+        <label class="field-label">Tom</label>
+        <div class="chip-grid" id="toneChips">
+          <button class="chip" data-tone="Profissional">Profissional</button>
+          <button class="chip" data-tone="Educativo">Educativo</button>
+          <button class="chip" data-tone="Provocativo">Provocativo</button>
+          <button class="chip" data-tone="Inspirador">Inspirador</button>
+          <button class="chip" data-tone="Divertido">Divertido</button>
+          <button class="chip" data-tone="Polêmico">Polêmico</button>
+          <button class="chip" data-tone="Premium">Premium</button>
+          <button class="chip" data-tone="Conversacional">Conversacional</button>
+        </div>
+
+        <label class="field-label">Objetivo</label>
+        <div class="chip-grid" id="objectiveChips">
+          <button class="chip" data-obj="Ganhar seguidores">Ganhar seguidores</button>
+          <button class="chip" data-obj="Gerar comentários">Gerar comentários</button>
+          <button class="chip" data-obj="Gerar compartilhamentos">Gerar compartilhamentos</button>
+          <button class="chip" data-obj="Gerar salvamentos">Gerar salvamentos</button>
+          <button class="chip" data-obj="Vender">Vender</button>
+          <button class="chip" data-obj="Atrair clientes">Atrair clientes</button>
+          <button class="chip" data-obj="Autoridade">Autoridade</button>
+        </div>
+
+        <label class="field-label">Imagem</label>
+        <div class="chip-grid" id="imageChips">
+          <button class="chip" data-img="Sem foto">Sem foto</button>
+          <button class="chip" data-img="Foto minha">Usar foto minha</button>
+          <button class="chip" data-img="Banco de imagens">Banco de imagens</button>
+          <button class="chip" data-img="Gerar com IA">Gerar imagem com IA</button>
+          <button class="chip" data-img="Upload">Upload de imagem</button>
+        </div>
+
+        <div class="hooks-block">
+          <div class="step-head-row">
+            <label class="field-label" style="margin:0">Gancho</label>
+            <button class="btn btn-ghost small" id="genHooksBtn">🪝 Gerar ganchos</button>
+          </div>
+          <div id="hooksStatus" class="status-text"></div>
+          <div class="hooks-list" id="hooksList"></div>
+        </div>
+
+        <div class="step-actions">
+          <button class="btn btn-ghost" data-back="identity">Voltar</button>
+          <button class="btn btn-primary" id="genCopyBtn">✍️ Gerar conteúdo</button>
+        </div>
+
+        <div id="copyStatus" class="status-text"></div>
+
+        <div class="copy-result" id="copyResult" hidden>
+          <label class="field-label">Título</label>
+          <input type="text" class="text-input" id="resTitle" />
+
+          <label class="field-label">Slides</label>
+          <div id="resSlides"></div>
+
+          <label class="field-label">Legenda</label>
+          <textarea class="textarea" id="resCaption" rows="4"></textarea>
+
+          <label class="field-label">Hashtags</label>
+          <input type="text" class="text-input" id="resHashtags" />
+
+          <label class="field-label">CTA</label>
+          <input type="text" class="text-input" id="resCta" />
+
+          <div class="step-actions">
+            <button class="btn btn-primary" id="toPreviewBtn">Ver preview →</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------- 07 PREVIEW ---------- -->
+      <section class="step" id="step-preview" hidden>
+        <h1 class="step-title">Pré-visualização do Instagram</h1>
+
+        <div class="format-toggle">
+          <button class="toggle-btn active" data-preview="feed">Feed</button>
+          <button class="toggle-btn" data-preview="story">Story</button>
+        </div>
+
+        <div class="phone-mockup" id="phoneMockup"></div>
+
+        <div class="step-actions">
+          <button class="btn btn-ghost" data-back="copy">Voltar</button>
+          <button class="btn btn-primary" id="saveDraftBtn">💾 Salvar na biblioteca</button>
+        </div>
+      </section>
+
+      <!-- ---------- 08 BIBLIOTECA ---------- -->
+      <section class="step" id="step-library" hidden>
+        <h1 class="step-title">Meus conteúdos</h1>
+
+        <div class="lib-tabs">
+          <button class="lib-tab active" data-status="Rascunho">🟡 Rascunhos</button>
+          <button class="lib-tab" data-status="Aprovado">🔵 Aprovados</button>
+          <button class="lib-tab" data-status="Publicado">🟢 Publicados</button>
+          <button class="lib-tab" data-status="Arquivado">🔴 Arquivados</button>
+        </div>
+        <input type="text" class="text-input" id="librarySearch" placeholder="Pesquisar nos meus conteúdos…" />
+        <div class="library-list" id="libraryList"></div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- ===== SETTINGS MODAL ===== -->
+<div class="modal-backdrop" id="settingsModal" hidden>
+  <div class="modal">
+    <h2>Configurações</h2>
+    <p class="step-sub">Cole aqui a URL do backend (Render/Railway) que guarda sua chave da Anthropic.</p>
+    <input type="text" class="text-input" id="backendUrlInput" placeholder="https://seu-app.onrender.com" />
+    <div class="step-actions">
+      <button class="btn btn-ghost" id="closeSettingsBtn">Cancelar</button>
+      <button class="btn btn-primary" id="saveSettingsBtn">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
